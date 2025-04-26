@@ -4,7 +4,7 @@ Example script demonstrating how to use pytwincatparser-xsdata to parse TwinCAT 
 """
 
 from pathlib import Path
-from pytwincatparser_xsdata import TwinCatLoader, TcPou
+from pytwincatparser import TwinCatLoader, TcPou
 
 def main():
     # Path to TwinCAT files
