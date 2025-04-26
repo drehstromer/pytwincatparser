@@ -18,9 +18,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/unknown/pytwincatparser#readme"
-Issues = "https://github.com/unknown/pytwincatparser/issues"
-Source = "https://github.com/unknown/pytwincatparser"
+Documentation = "https://github.com/drehstromer/pytwincatparser#readme"
+Issues = "https://github.com/drehstromer/pytwincatparser/issues"
+Source = "https://github.com/drehstromer/pytwincatparser"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pytwincatparser"]

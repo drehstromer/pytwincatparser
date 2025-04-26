@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example script demonstrating how to use pytwincatparser-xsdata to parse TwinCAT files.
+Example script demonstrating how to use pytwincatparser to parse TwinCAT files.
 """
 
 from pathlib import Path
