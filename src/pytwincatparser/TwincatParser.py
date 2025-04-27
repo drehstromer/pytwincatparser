@@ -673,32 +673,91 @@ class TwinCatLoader:
         for paths in self.search_paths:
             for path in paths.rglob('*'+ file_ending):
                 found_tc_files.append(path)
+                
+
+    def get_name(self, name:Path) -> str:
+        return name.stem
+
 
 
     def load(self):
 
         for obj in self.found_tcPou:
             try:
-                self.tcObjects.append((obj.name, TcPou.from_xml_import(self.parser.parse(obj, TcPlcObject).pou)))
+                self.tcObjects.append((self.get_name(obj), TcPou.from_xml_import(self.parser.parse(obj, TcPlcObject).pou)))
                 logger.info('loaded: %s', obj.name)
             except ParserError:
                 logger.error('error when loading: %s', obj, exc_info=True)
 
         for obj in self.found_tcDut:
             try:
-                self.tcObjects.append((obj.name, TcDut.from_xml_import(self.parser.parse(obj, TcPlcObject).dut)))
+                self.tcObjects.append((self.get_name(obj), TcDut.from_xml_import(self.parser.parse(obj, TcPlcObject).dut)))
                 logger.info('loaded: %s',obj.name)
             except ParserError:
                 logger.error('error when loading: %s', obj, exc_info=True)
             
         for obj in self.found_tcIo:
             try:
-                self.tcObjects.append((obj.name, TcItf.from_xml_import(self.parser.parse(obj, TcPlcObject).itf)))     
+                self.tcObjects.append((self.get_name(obj), TcItf.from_xml_import(self.parser.parse(obj, TcPlcObject).itf)))     
                 logger.info('loaded: %s', obj.name)
             except ParserError:
                 logger.error('error when loading: %s', obj, exc_info=True)
 
     def getItemByName(self, name:str) -> object | None:
+        """
+        Get an item by name. This can be a POU, DUT, ITF, Method, or Property.
+        
+        Args:
+            name: The name of the item to find. 
+                  - For top-level objects, use the file name (e.g., 'FB_Base').
+                  - For methods, use the format 'ObjectFileName.MethodName' (e.g., 'FB_Base._ConfigureAlarm').
+                  - For properties, use the format 'ObjectFileName.PropertyName' (e.g., 'FB_Base.DesignationName').
+                  
+        Returns:
+            The found object or None if not found.
+            
+        Examples:
+            >>> loader = TwinCatLoader(search_path="path/to/twincat/files")
+            >>> loader.load()
+            >>> pou = loader.getItemByName("FB_Base")
+            >>> method = loader.getItemByName("FB_Base._ConfigureAlarm")
+            >>> property = loader.getItemByName("FB_Base.DesignationName")
+        """
+        # Check if the name contains a dot (indicating a method or property)
+        if '.' in name:
+            # Split the name by dots
+            parts = name.split('.')
+            
+            # If there are more than 2 parts, the first parts form the parent name
+            if len(parts) > 2:
+                parent_name = '.'.join(parts[:-1])
+                item_name = parts[-1]
+            else:
+                parent_name, item_name = parts
+            
+            # Find the parent object
+            parent_obj = None
+            for obj_name, obj in self.tcObjects:
+                if str(obj_name) == parent_name:
+                    parent_obj = obj
+                    break
+            
+            if parent_obj:
+                # Check if the parent object has methods
+                if hasattr(parent_obj, 'methods') and parent_obj.methods:
+                    for method in parent_obj.methods:
+                        if method.name == item_name:
+                            return method
+                
+                # Check if the parent object has properties
+                if hasattr(parent_obj, 'properties') and parent_obj.properties:
+                    for prop in parent_obj.properties:
+                        if prop.name == item_name:
+                            return prop
+            
+            return None
+        
+        # Search for top-level objects
         for obj_name, obj in self.tcObjects:
             if str(obj_name) == name:
                 return obj
@@ -720,6 +779,6 @@ if __name__ == '__main__':
 
     print(len(tcObjects))
 
-    #print(loader.getItemByName('FB_Base.TcPOU'))
+    #print(loader.getItemByName('FB_Base'))
 
     #print(tcObjects[0])

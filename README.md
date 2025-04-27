@@ -42,7 +42,13 @@ loader = TwinCatLoader(search_path="path/to/twincat/files")
 loader.load()
 
 # Get a specific object by name
-pou = loader.getItemByName("FB_Base.TcPOU")
+pou = loader.getItemByName("FB_Base")
+
+# Get a method by name
+method = loader.getItemByName("FB_Base._ConfigureAlarm")
+
+# Get a property by name
+property = loader.getItemByName("FB_Base.DesignationName")
 
 # Get all loaded objects
 all_objects = loader.getAllItems()
