@@ -28,8 +28,24 @@
     </div>
     {% endif %}
     
-    {% include "tcmethod.html" %}
+    {% if obj.methods %}
+    <div class="doc-section">
+        <h3 class="doc-section-title">Methods</h3>
+        
+        {% for method in obj.methods %}
+            {% include "tcmethod.html" %}
+        {% endfor %}
+    </div>
+    {% endif %}
     
-    {% include "tcproperty.html" %}
+    {% if obj.properties %}
+    <div class="doc-section">
+        <h3 class="doc-section-title">Properties</h3>
+        
+        {% for property in obj.properties %}
+            {% include "tcproperty.html" %}
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
