@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}{{ obj.name }} - TwinCAT Interface Documentation{% endblock %}
+
+{% block content %}
+<div class="doc-section">
+    <h1 class="doc-section-title">{{ obj.name }}</h1>
+    
+    <div class="doc-item">
+        <span class="badge badge-info">Interface</span>
+        
+        {% if obj.extends %}
+        <div class="doc-item">
+            <span class="doc-item-name">Extends:</span>
+            <ul>
+                {% for interface in obj.extends %}
+                <li>{{ interface }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% include "tcmethod.html" %}
+    
+    {% include "tcproperty.html" %}
+</div>
+{% endblock %}

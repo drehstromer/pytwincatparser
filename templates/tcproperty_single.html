@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ obj.name }} - TwinCAT Property Documentation{% endblock %}
+
+{% block content %}
+<div class="doc-section">
+    <h1 class="doc-section-title">{{ obj.name }}</h1>
+    
+    <div class="doc-item">
+        <span class="badge badge-success">Property</span>
+    </div>
+    
+    {% if obj.returnType %}
+    <div class="doc-item">
+        <span class="doc-item-name">Type:</span>
+        <span class="doc-item-type">{{ obj.returnType }}</span>
+    </div>
+    {% endif %}
+    
+    {% if obj.get %}
+    <div class="doc-section">
+        <h3 class="doc-section-title">Getter</h3>
+        {% if obj.get.implementation %}
+        <pre><code>{{ obj.get.implementation }}</code></pre>
+        {% else %}
+        <p>No implementation provided.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if obj.set %}
+    <div class="doc-section">
+        <h3 class="doc-section-title">Setter</h3>
+        {% if obj.set.implementation %}
+        <pre><code>{{ obj.set.implementation }}</code></pre>
+        {% else %}
+        <p>No implementation provided.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
