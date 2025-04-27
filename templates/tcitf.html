@@ -21,6 +21,13 @@
         {% endif %}
     </div>
     
+    {% if obj.declaration %}
+    <div class="doc-section">
+        <h3 class="doc-section-title">Declaration</h3>
+        <pre><code>{{ obj.declaration }}</code></pre>
+    </div>
+    {% endif %}
+    
     {% include "tcmethod.html" %}
     
     {% include "tcproperty.html" %}

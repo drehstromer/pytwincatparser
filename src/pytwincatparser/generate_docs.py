@@ -57,21 +57,7 @@ def generate_documentation(search_path: str | Path, output_dir: str | Path, temp
         with open(output_dir / f'pou_{safe_name}.html', 'w', encoding='utf-8') as f:
             f.write(template.render(obj=pou))
         
-        # Generate method pages
-        if pou.methods:
-            method_template = env.get_template('tcmethod_single.html')
-            for method in pou.methods:
-                method_safe_name = f"{safe_name}_{method.name}"
-                with open(output_dir / f'method_{method_safe_name}.html', 'w', encoding='utf-8') as f:
-                    f.write(method_template.render(obj=method))
-        
-        # Generate property pages
-        if pou.properties:
-            property_template = env.get_template('tcproperty_single.html')
-            for prop in pou.properties:
-                prop_safe_name = f"{safe_name}_{prop.name}"
-                with open(output_dir / f'property_{prop_safe_name}.html', 'w', encoding='utf-8') as f:
-                    f.write(property_template.render(obj=prop))
+        # We no longer generate individual method and property pages
     
     # Generate DUT pages
     template = env.get_template('tcdut.html')
@@ -87,21 +73,7 @@ def generate_documentation(search_path: str | Path, output_dir: str | Path, temp
         with open(output_dir / f'itf_{safe_name}.html', 'w', encoding='utf-8') as f:
             f.write(template.render(obj=itf))
         
-        # Generate method pages
-        if itf.methods:
-            method_template = env.get_template('tcmethod_single.html')
-            for method in itf.methods:
-                method_safe_name = f"{safe_name}_{method.name}"
-                with open(output_dir / f'method_{method_safe_name}.html', 'w', encoding='utf-8') as f:
-                    f.write(method_template.render(obj=method))
-        
-        # Generate property pages
-        if itf.properties:
-            property_template = env.get_template('tcproperty_single.html')
-            for prop in itf.properties:
-                prop_safe_name = f"{safe_name}_{prop.name}"
-                with open(output_dir / f'property_{prop_safe_name}.html', 'w', encoding='utf-8') as f:
-                    f.write(property_template.render(obj=prop))
+        # We no longer generate individual method and property pages
     
     print(f"Documentation generated in {output_dir}")
 
