@@ -13,9 +13,16 @@
         </div>
         {% endif %}
         
+        {% if property.get and property.get.declaration %}
+        <div class="doc-item">
+            <h5>Getter Declaration</h5>
+            <pre><code>{{ property.get.declaration }}</code></pre>
+        </div>
+        {% endif %}
+        
         {% if property.get %}
         <div class="doc-item">
-            <h5>Getter</h5>
+            <h5>Getter Implementation</h5>
             {% if property.get.implementation %}
             <pre><code>{{ property.get.implementation }}</code></pre>
             {% else %}
@@ -24,9 +31,16 @@
         </div>
         {% endif %}
         
+        {% if property.set and property.set.declaration %}
+        <div class="doc-item">
+            <h5>Setter Declaration</h5>
+            <pre><code>{{ property.set.declaration }}</code></pre>
+        </div>
+        {% endif %}
+        
         {% if property.set %}
         <div class="doc-item">
-            <h5>Setter</h5>
+            <h5>Setter Implementation</h5>
             {% if property.set.implementation %}
             <pre><code>{{ property.set.implementation }}</code></pre>
             {% else %}

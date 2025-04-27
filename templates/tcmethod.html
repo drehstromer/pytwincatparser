@@ -25,6 +25,13 @@
         </div>
         {% endif %}
         
+        {% if method.declaration %}
+        <div class="doc-item">
+            <h5>Declaration</h5>
+            <pre><code>{{ method.declaration }}</code></pre>
+        </div>
+        {% endif %}
+        
         {% if method.variable_sections %}
         <div class="doc-item">
             {% set obj = method %}

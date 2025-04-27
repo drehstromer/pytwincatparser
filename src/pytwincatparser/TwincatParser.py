@@ -113,7 +113,6 @@ def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
     # Define regex patterns for documentation tags
     details_pattern = re.compile(r'@details\s*(.*?)(?=@\w+|\Z)', re.DOTALL)
     usage_pattern = re.compile(r'@usage\s*(.*?)(?=@\w+|\Z)', re.DOTALL)
-    brief_pattern = re.compile(r'@brief\s*(.*?)(?=@\w+|\Z)', re.DOTALL)
     returns_pattern = re.compile(r'@return\s*(.*?)(?=@\w+|\Z)', re.DOTALL)
     custom_tag_pattern = re.compile(r'@(\w+)\s*(.*?)(?=@\w+|\Z)', re.DOTALL)
     
@@ -142,11 +141,6 @@ def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
     if usage_match:
         doc.usage = clean_tag_content(usage_match.group(1))
     
-    # Extract brief
-    brief_match = brief_pattern.search(comment_text)
-    if brief_match:
-        doc.brief = clean_tag_content(brief_match.group(1))
-    
     # Extract returns
     returns_match = returns_pattern.search(comment_text)
     if returns_match:
@@ -156,7 +150,7 @@ def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
     for match in custom_tag_pattern.finditer(comment_text):
         tag_name = match.group(1)
         tag_value = clean_tag_content(match.group(2))
-        if tag_name not in ['details', 'usage', 'brief', 'return']:
+        if tag_name not in ['details', 'usage', 'return']:
             doc.custom_tags[tag_name] = tag_value
     
     return doc
@@ -366,10 +360,15 @@ class TcGet:
                         xml_import: Get):
         if xml_import is None:
             return None
+        
+        # Extract implementation text
+        implementation_text = ""
+        if hasattr(xml_import.implementation, 'st'):
+            implementation_text = xml_import.implementation.st
             
         return TcGet(name=xml_import.name, 
                      declaration=xml_import.declaration, 
-                     implementation=xml_import.implementation)
+                     implementation=implementation_text)
 
 @dataclass
 class TcSet:
@@ -382,10 +381,15 @@ class TcSet:
                         xml_import: Set):
         if xml_import is None:
             return None
+        
+        # Extract implementation text
+        implementation_text = ""
+        if hasattr(xml_import.implementation, 'st'):
+            implementation_text = xml_import.implementation.st
             
         return TcSet(name=xml_import.name, 
                      declaration=xml_import.declaration, 
-                     implementation=xml_import.implementation) 
+                     implementation=implementation_text) 
 
 @dataclass
 class TcMethod:
@@ -406,6 +410,11 @@ class TcMethod:
                         xml_import: Method):
         if xml_import is None:
             return None
+        
+        # Extract implementation text
+        implementation_text = ""
+        if hasattr(xml_import.implementation, 'st'):
+            implementation_text = xml_import.implementation.st
             
         # Parse access modifier and return type from declaration
         accessModifier = None
@@ -446,7 +455,7 @@ class TcMethod:
                         accessModifier=accessModifier,
                         returnType=returnType,
                         declaration=xml_import.declaration, 
-                        implementation=xml_import.implementation,
+                        implementation=implementation_text,
                         variable_sections=variable_sections,
                         documentation=documentation)
 
@@ -504,6 +513,11 @@ class TcPou:
                         xml_import: Pou):
         if xml_import is None:
             return None
+        
+        # Extract implementation text
+        implementation_text = ""
+        if hasattr(xml_import.implementation, 'st'):
+            implementation_text = xml_import.implementation.st
             
         properties = []
         if hasattr(xml_import, 'property') and xml_import.property:
@@ -547,7 +561,7 @@ class TcPou:
             
         return TcPou(name=xml_import.name,
                     declaration=xml_import.declaration, 
-                    implementation=xml_import.implementation,
+                    implementation=implementation_text,
                     properties=properties,
                     methods=methods,
                     extends=extends,
