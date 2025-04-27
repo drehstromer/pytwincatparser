@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html.jinja" %}
 
 {% block title %}{{ obj.name }} - TwinCAT DUT Documentation{% endblock %}
 
@@ -10,7 +10,7 @@
         <span class="badge badge-success">DUT</span>
     </div>
     
-    {% include "tcdocumentation.html" %}
+    {% include "tcdocumentation.html.jinja" %}
     
     {% if obj.declaration %}
     <div class="doc-section">
@@ -19,6 +19,6 @@
     </div>
     {% endif %}
     
-    {% include "tcvariable_section.html" %}
+    {% include "tcvariable_section.html.jinja" %}
 </div>
 {% endblock %}
