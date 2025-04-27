@@ -1,31 +1,25 @@
-{% extends "base.html" %}
+{% extends "base.html.jinja" %}
 
-{% block title %}{{ obj.name }} - TwinCAT POU Documentation{% endblock %}
+{% block title %}{{ obj.name }} - TwinCAT Interface Documentation{% endblock %}
 
 {% block content %}
 <div class="doc-section">
     <h1 class="doc-section-title">{{ obj.name }}</h1>
     
     <div class="doc-item">
-        <span class="badge badge-primary">POU</span>
-        {% if obj.extends %}
-        <span class="doc-item-name">Extends:</span>
-        <span class="doc-item-type">{{ obj.extends }}</span>
-        {% endif %}
+        <span class="badge badge-info">Interface</span>
         
-        {% if obj.implements %}
+        {% if obj.extends %}
         <div class="doc-item">
-            <span class="doc-item-name">Implements:</span>
+            <span class="doc-item-name">Extends:</span>
             <ul>
-                {% for interface in obj.implements %}
+                {% for interface in obj.extends %}
                 <li>{{ interface }}</li>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
     </div>
-    
-    {% include "tcdocumentation.html" %}
     
     {% if obj.declaration %}
     <div class="doc-section">
@@ -34,21 +28,12 @@
     </div>
     {% endif %}
     
-    {% include "tcvariable_section.html" %}
-    
-    {% if obj.implementation %}
-    <div class="doc-section">
-        <h3 class="doc-section-title">Implementation</h3>
-        <pre><code>{{ obj.implementation }}</code></pre>
-    </div>
-    {% endif %}
-    
     {% if obj.methods %}
     <div class="doc-section">
         <h3 class="doc-section-title">Methods</h3>
         
         {% for method in obj.methods %}
-            {% include "tcmethod.html" %}
+            {% include "tcmethod.html.jinja" %}
         {% endfor %}
     </div>
     {% endif %}
@@ -58,7 +43,7 @@
         <h3 class="doc-section-title">Properties</h3>
         
         {% for property in obj.properties %}
-            {% include "tcproperty.html" %}
+            {% include "tcproperty.html.jinja" %}
         {% endfor %}
     </div>
     {% endif %}

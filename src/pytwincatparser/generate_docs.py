@@ -46,12 +46,12 @@ def generate_documentation(search_path: str | Path, output_dir: str | Path, temp
             itfs.append((name, obj))
     
     # Generate index page
-    template = env.get_template('index.html')
+    template = env.get_template('index.html.jinja')
     with open(output_dir / 'index.html', 'w', encoding='utf-8') as f:
         f.write(template.render(pous=pous, duts=duts, itfs=itfs))
     
     # Generate POU pages
-    template = env.get_template('tcpou.html')
+    template = env.get_template('tcpou.html.jinja')
     for name, pou in pous:
         safe_name = name.replace('.', '_')
         with open(output_dir / f'pou_{safe_name}.html', 'w', encoding='utf-8') as f:
@@ -60,14 +60,14 @@ def generate_documentation(search_path: str | Path, output_dir: str | Path, temp
         # We no longer generate individual method and property pages
     
     # Generate DUT pages
-    template = env.get_template('tcdut.html')
+    template = env.get_template('tcdut.html.jinja')
     for name, dut in duts:
         safe_name = name.replace('.', '_')
         with open(output_dir / f'dut_{safe_name}.html', 'w', encoding='utf-8') as f:
             f.write(template.render(obj=dut))
     
     # Generate Interface pages
-    template = env.get_template('tcitf.html')
+    template = env.get_template('tcitf.html.jinja')
     for name, itf in itfs:
         safe_name = name.replace('.', '_')
         with open(output_dir / f'itf_{safe_name}.html', 'w', encoding='utf-8') as f:
