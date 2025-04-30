@@ -30,9 +30,9 @@ def main():
         print(f"- {name}")
     
     # Get a specific POU by name
-    fb_base = loader.getItemByName("FB_Base.TcPOU")
+    fb_base = loader.getItemByName("FB_Base")
     if fb_base:
-        print("\nFound FB_Base.TcPOU:")
+        print("\nFound FB_Base:")
         print(f"Name: {fb_base.name}")
         
         # Print extends and implements information
@@ -117,9 +117,9 @@ def main():
                 print(f"- {prop.name} (Return Type: {return_type})")
     
     # Get a specific DUT by name
-    st_pml_command = loader.getItemByName("ST_PmlCommand.TcDUT")
+    st_pml_command = loader.getItemByName("ST_PmlCommand")
     if st_pml_command:
-        print("\nFound ST_PmlCommand.TcDUT:")
+        print("\nFound ST_PmlCommand:")
         print(f"Name: {st_pml_command.name}")
         
         # Print documentation
@@ -153,7 +153,7 @@ def main():
                     print(var_info)
     
     # Get a specific interface by name
-    i_data = loader.getItemByName("I_Data.TcIO")
+    i_data = loader.getItemByName("I_Data")
     if i_data:
         print("\nFound I_Data.TcIO:")
         print(f"Name: {i_data.name}")
