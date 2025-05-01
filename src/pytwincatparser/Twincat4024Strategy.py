@@ -612,7 +612,7 @@ class TcItfHandler(FileHandler):
 
         properties = []
         if hasattr(_itf, "property") and _itf.property:
-            properties = [load_property(property == prop) for prop in _itf.property]
+            properties = [load_property(property = prop) for prop in _itf.property]
 
         methods = []
         if hasattr(_itf, "method") and _itf.method:
