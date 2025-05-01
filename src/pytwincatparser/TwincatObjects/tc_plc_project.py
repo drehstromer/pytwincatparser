@@ -265,7 +265,7 @@ class D:
             "sequence": 1,
         },
     )
-    o: list["O"] = field(
+    o: list["O1"] = field(
         default_factory=list,
         metadata={
             "type": "Element",
@@ -369,7 +369,7 @@ class TypeList:
 
 
 @dataclass
-class O:
+class O1:
     class Meta:
         name = "o"
         namespace = "http://schemas.microsoft.com/developer/msbuild/2003"
@@ -408,7 +408,7 @@ class Data:
     class Meta:
         namespace = "http://schemas.microsoft.com/developer/msbuild/2003"
 
-    o: Optional[O] = field(
+    o: Optional[O1] = field(
         default=None,
         metadata={
             "type": "Element",
