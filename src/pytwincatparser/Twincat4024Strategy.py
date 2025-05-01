@@ -1,75 +1,36 @@
 import logging
-import os
 import re
-import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, Optional
 
-# Handle both direct script execution and module import
-if __name__ == "__main__":
-    # Add the parent directory to sys.path to allow absolute imports
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    if parent_dir not in sys.path:
-        sys.path.insert(0, parent_dir)
-
-    # Use absolute imports when run as script
-    from pytwincatparser.BaseStrategy import BaseStrategy
-    from pytwincatparser.Loader import add_strategy
-    from pytwincatparser.TwincatObjects.tc_plc_object import (
-        Dut,
-        Get,
-        Itf,
-        Method,
-        Pou,
-        Property,
-        Set,
-        TcPlcObject,
-    )
-    from pytwincatparser.TwincatObjects.tc_plc_project import Compile, Project
-    from pytwincatparser.TwincatDataclasses import (
-        TcDocumentation,
-        TcDut,
-        TcGet,
-        TcItf,
-        TcMethod,
-        TcObjects,
-        TcPlcProject,
-        TcPou,
-        TcProperty,
-        TcSet,
-        TcVariable,
-        TcVariableSection,
-    )
-else:
-    # Use relative imports when imported as a module
-    from .BaseStrategy import BaseStrategy
-    from .Loader import add_strategy
-    from .TwincatObjects.tc_plc_object import (
-        Dut,
-        Get,
-        Itf,
-        Method,
-        Pou,
-        Property,
-        Set,
-        TcPlcObject,
-    )
-    from .TwincatObjects.tc_plc_project import Compile, Project
-    from .TwincatDataclasses import (
-        TcDocumentation,
-        TcDut,
-        TcGet,
-        TcItf,
-        TcMethod,
-        TcObjects,
-        TcPlcProject,
-        TcPou,
-        TcProperty,
-        TcSet,
-        TcVariable,
-        TcVariableSection,
-    )
+from .BaseStrategy import BaseStrategy
+from .Loader import add_strategy
+from .TwincatObjects.tc_plc_object import (
+    Dut,
+    Get,
+    Itf,
+    Method,
+    Pou,
+    Property,
+    Set,
+    TcPlcObject,
+)
+from .TwincatObjects.tc_plc_project import Compile, Project
+from .TwincatDataclasses import (
+    TcDocumentation,
+    TcDut,
+    TcGet,
+    TcItf,
+    TcMethod,
+    TcObjects,
+    TcPlcProject,
+    TcPou,
+    TcProperty,
+    TcSet,
+    TcVariable,
+    TcVariableSection,
+)
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig

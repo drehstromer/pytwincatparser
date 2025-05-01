@@ -42,7 +42,7 @@ from .tc_plc_project import (
     LibraryCategories,
     LibraryCategory,
     NoneType,
-    O,
+    O1,
     PlaceholderReference,
     PlcProjectOptions,
     Project,
@@ -104,7 +104,7 @@ __all__ = [
     "TypeList",
     "XmlArchive",
     "D",
-    "O",
+    "O1",
     "V",
 ]
 

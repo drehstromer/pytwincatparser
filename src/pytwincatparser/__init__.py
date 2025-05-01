@@ -2,39 +2,41 @@
 pytwincatparser - A Python package for parsing TwinCAT PLC files using xsdata.
 """
 
-# from .TwincatParser import (
-#     TwinCatLoader,
-#     TcPou,
-#     TcDut,
-#     TcItf,
-#     TcMethod,
-#     TcProperty,
-#     TcGet,
-#     TcSet,
-#     TcVariable,
-#     TcVariableSection,
-#     TcDocumentation,
-#     TcPlcObject,
-#     TcObjects,
-#     TcSolution,
-#     TcPlcProject
-# )
+from .TwincatDataclasses import (
+    TcPou,
+    TcDut,
+    TcItf,
+    TcMethod,
+    TcProperty,
+    TcGet,
+    TcSet,
+    TcVariable,
+    TcVariableSection,
+    TcDocumentation,
+    TcObjects,
+    TcSolution,
+    TcPlcProject
+)
+from .Loader import add_strategy
+from .Twincat4024Strategy import Twincat4024Strategy
+from .BaseStrategy import BaseStrategy
 
-# __version__ = "0.1.0"
-# __all__ = [
-#     "TwinCatLoader",
-#     "TcPou",
-#     "TcDut",
-#     "TcItf",
-#     "TcMethod",
-#     "TcProperty",
-#     "TcGet",
-#     "TcSet",
-#     "TcVariable",
-#     "TcVariableSection",
-#     "TcDocumentation",
-#     "TcPlcObject",
-#     "TcObjects",
-#     "TcSolution",
-#     "TcPlcProject",
-# ]
+__version__ = "0.1.1"
+__all__ = [
+    "TcPou",
+    "TcDut",
+    "TcItf",
+    "TcMethod",
+    "TcProperty",
+    "TcGet",
+    "TcSet",
+    "TcVariable",
+    "TcVariableSection",
+    "TcDocumentation",
+    "TcObjects",
+    "TcSolution",
+    "TcPlcProject",
+    "add_strategy",
+    "Twincat4024Strategy",
+    "BaseStrategy",
+]
