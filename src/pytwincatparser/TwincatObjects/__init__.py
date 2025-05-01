@@ -13,7 +13,7 @@ from .tc_plc_object import (
     TcPlcObject,
 )
 
-from .tc_sm_project import (
+from .tc_twincat_project import (
     Clsid,
     Context,
     Contexts,
@@ -33,7 +33,7 @@ from .tc_sm_project import (
     TcSmProject,
 )
 
-from .tc_project import (
+from .tc_plc_project import (
     Compile,
     D,
     Data,
