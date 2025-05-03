@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 @dataclass
@@ -10,10 +10,17 @@ class TcBase(ABC):
     sub_paths: Optional[List[Path]] = None
     parent: Optional[object | None] = None
     name_space: Optional[str] = None
+    name: Optional[str] = None
 
     def __post_init__(self):
         if self.sub_paths is None:
             self.sub_paths = []
+
+    @abstractmethod
+    def get_identifier(self) -> str:
+        pass
+
+
 
 
 @dataclass
@@ -29,10 +36,11 @@ class TcDocumentation(TcBase):
             self.custom_tags = {}
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        return ""
 
 @dataclass
 class TcVariable(TcBase):
-    name: str = ""
     type: str = ""
     initial_value: Optional[str] = None
     comment: Optional[str] = None
@@ -43,6 +51,8 @@ class TcVariable(TcBase):
             self.attributes = {}
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        return ""
 
 @dataclass
 class TcVariableSection(TcBase):
@@ -56,24 +66,33 @@ class TcVariableSection(TcBase):
             self.variables = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        return ""
 
 @dataclass
 class TcGet(TcBase):
-    name: str = ""
     declaration: str = ""
     implementation: str = ""
 
+    def __post_init__(self):
+        TcBase.__post_init__(self)
+
+    def get_identifier(self) -> str:
+        return ""
 
 @dataclass
 class TcSet(TcBase):
-    name: str = ""
     declaration: str = ""
     implementation: str = ""
 
+    def __post_init__(self):
+        TcBase.__post_init__(self)
+
+    def get_identifier(self) -> str:
+        return ""
 
 @dataclass
 class TcMethod(TcBase):
-    name: str = ""
     accessModifier: Optional[str] = None
     returnType: Optional[str] = None
     declaration: str = ""
@@ -86,18 +105,38 @@ class TcMethod(TcBase):
             self.variable_sections = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        if self.parent.name is not None:
+            _identifier += self.parent.name
+            _identifier += "."
+        _identifier += self.name
+        return _identifier
 
 @dataclass
 class TcProperty(TcBase):
-    name: str = ""
     returnType: Optional[str] = None
     get: Optional[TcGet] = None
     set: Optional[TcSet] = None
 
+    def __post_init__(self):
+        TcBase.__post_init__(self)
+
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        if self.parent.name is not None:
+            _identifier += self.parent.name
+            _identifier += "."
+        _identifier += self.name
+        return _identifier
+
 
 @dataclass
 class TcPou(TcBase):
-    name: str = ""
     implements: Optional[list[str]] = None
     extends: Optional[str] = None
     declaration: str = ""
@@ -119,10 +158,15 @@ class TcPou(TcBase):
             self.variable_sections = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        _identifier += self.name
+        return _identifier
 
 @dataclass
 class TcItf(TcBase):
-    name: str = ""
     extends: Optional[list[str]] = None
 
     methods: Optional[list[TcMethod]] = None
@@ -137,10 +181,15 @@ class TcItf(TcBase):
             self.properties = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        _identifier += self.name
+        return _identifier
 
 @dataclass
 class TcDut(TcBase):
-    name: str = ""
     declaration: str = ""
     variable_sections: Optional[List[TcVariableSection]] = None
     documentation: Optional[TcDocumentation] = None
@@ -150,12 +199,17 @@ class TcDut(TcBase):
             self.variable_sections = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        _identifier += self.name
+        return _identifier
 
 @dataclass
 class TcPlcProject(TcBase):
     """Represents a plc project in a TwinCAT solution."""
 
-    name: str = ""
     default_namespace: str = ""
     version: str = ""
     object_paths: Optional[List[Path]] = None
@@ -165,13 +219,19 @@ class TcPlcProject(TcBase):
             self.object_paths = []
         TcBase.__post_init__(self)
 
+    def get_identifier(self) -> str:
+        return self.name
+
+
+
+
 
 @dataclass
 class TcProject(TcBase):
     """Represents a project in a TwinCAT solution."""
 
-    name: str = ""
-
+    def __post_init__(self):
+        TcBase.__post_init__(self)
 
 @dataclass
 class TcSolution(TcBase):
@@ -183,6 +243,7 @@ class TcSolution(TcBase):
         if self._projects is None:
             self._projects = []
         TcBase.__post_init__(self)
+
 
 
 TcObjects = TcBase

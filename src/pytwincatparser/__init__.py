@@ -17,7 +17,7 @@ from .TwincatDataclasses import (
     TcSolution,
     TcPlcProject
 )
-from .Loader import add_strategy, Loader
+from .Loader import add_strategy, Loader, get_default_strategy, get_strategy, get_strategy_by_object_path
 from .Twincat4024Strategy import Twincat4024Strategy
 from .BaseStrategy import BaseStrategy
 
@@ -39,5 +39,8 @@ __all__ = [
     "add_strategy",
     "Twincat4024Strategy",
     "BaseStrategy",
-    "Loader"
+    "Loader",
+    "get_default_strategy", 
+    "get_strategy", 
+    "get_strategy_by_object_path"
 ]
