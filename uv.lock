@@ -63,7 +63,7 @@ wheels = [
 
 [[package]]
 name = "pytwincatparser"
-version = "0.1.2"
+version = "0.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "lxml" },

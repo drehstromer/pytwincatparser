@@ -468,7 +468,7 @@ def load_set_property(set: Set):
 class FileHandler(ABC):
     def __init__(self, suffix):
         self.suffix: str = suffix.lower()
-        self.config = ParserConfig(fail_on_unknown_properties=True)
+        self.config = ParserConfig(fail_on_unknown_properties=False)
         self.parser = XmlParser(config=self.config)
         super().__init__()
 
@@ -499,6 +499,13 @@ class XtiHandler(FileHandler):
 
     def load_object(self, path):
         raise NotImplementedError("XtiHandler not implemented")
+    
+class TcTtoHandler(FileHandler):
+    def __init__(self):
+        super().__init__(suffix=".tctto")
+
+    def load_object(self, path):
+        raise NotImplementedError("tcttoHandler not implemented")
 
 
 class PlcProjectHandler(FileHandler):
@@ -519,6 +526,7 @@ class PlcProjectHandler(FileHandler):
 
         for elem in compile_elements:
             object_paths.append((path.parent / Path(elem.include)).resolve())
+
 
         return TcPlcProject(
             name=_prj.property_group.name,
@@ -681,21 +689,24 @@ _handler: List[FileHandler] = []
 def add_handler(handler: FileHandler):
     _handler.append(handler)
 
+def get_all_handler()-> List[FileHandler]:
+    return _handler
 
 def get_handler(suffix: str) -> FileHandler:
     for handler in _handler:
-        if handler.suffix == suffix.lower():
+        if handler.suffix.lower() == suffix.lower():
             return handler
-    raise Exception(f"Handler for suffix:  {handler.suffix} not found")
+    raise Exception(f"Handler for suffix:  <{suffix}> not found. Registered Handlers: {', '.join(x.suffix for x in _handler)}")
 
 
-add_handler(handler=SolutionHandler())
-add_handler(handler=TwincatProjectHandler())
-add_handler(handler=XtiHandler())
+#add_handler(handler=SolutionHandler())
+#add_handler(handler=TwincatProjectHandler())
+#add_handler(handler=XtiHandler())
 add_handler(handler=PlcProjectHandler())
 add_handler(handler=TcPouHandler())
 add_handler(handler=TcItfHandler())
 add_handler(handler=TcDutHandler())
+#add_handler(handler=TcTtoHandler())
 
 
 class Twincat4024Strategy(BaseStrategy):
@@ -703,37 +714,42 @@ class Twincat4024Strategy(BaseStrategy):
         for handler in _handler:
             if path.suffix == handler.suffix:
                 return True
+            
+    def _check_handler(self, suffix:str) -> bool:
+        for handler in get_all_handler():
+            if handler.suffix.lower() == suffix.lower():
+                return True
+        logger.error(f"no handler found for: {suffix}")
+        return False
 
     def _load_tc_object(self, path: Path) -> TcObjects:
-        handler = get_handler(suffix=path.suffix)
-        return handler.load_object(path)
+        _path = Path(path)
+        if self._check_handler(suffix=_path.suffix):
+            handler = get_handler(suffix=_path.suffix)
+            return handler.load_object(path)
+        else:
+            return None
 
     def _load_all_sub_objects(self, tcObject: TcObjects, datastore: List[TcObjects]):
         for sub_path in tcObject.sub_paths:
             sub_obj = self._load_tc_object(sub_path)
-            sub_obj.parent = tcObject
-            if tcObject.name_space is not None:
-                sub_obj.name_space = tcObject.name_space
-            datastore.append(sub_obj)
-            self._load_all_sub_objects(tcObject=sub_obj, datastore=datastore)
+            if sub_obj is not None:
+                sub_obj.parent = tcObject
+                if tcObject.name_space is not None:
+                    sub_obj.name_space = tcObject.name_space
+                datastore.append(sub_obj)
+                self._load_all_sub_objects(tcObject=sub_obj, datastore=datastore)
 
     def load_objects(self, path):
         datastore: List[TcObjects] = []
         obj: TcObjects = None
         obj = self._load_tc_object(path=path)
-        datastore.append(obj)
-        self._load_all_sub_objects(tcObject=obj, datastore=datastore)
+        if obj is not None:
+            datastore.append(obj)
+            self._load_all_sub_objects(tcObject=obj, datastore=datastore)
 
         return datastore
 
 
 # present the strategy to the loader
 add_strategy(Twincat4024Strategy)
-
-
-if __name__ == "__main__":
-    strategy = Twincat4024Strategy()
-
-    print(strategy.load_objects(Path("TwincatFiles\Base\FB_Base.TcPOU")))
-    print(strategy.load_objects(Path("TwincatFiles\Commands\ST_PmlCommand.TcDUT")))
-    print(strategy.load_objects(Path("TwincatFiles\TwincatPlcProject.plcproj")))

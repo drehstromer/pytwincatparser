@@ -43,7 +43,8 @@ class Loader:
         self._strategy = strategy
 
     def load_objects(self, path: Path) -> List[TcObjects] | None:
-        print(self._strategy.load_objects(path))
+        _path = Path(path)
+        return self._strategy.load_objects(path=_path)
 
     # @abstractmethod
     # def get_item_by_name(self, name:str) -> TcObjects | None:
