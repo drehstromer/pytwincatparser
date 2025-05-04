@@ -428,12 +428,16 @@ def load_property(property: Property):
                     # Split by colon and get the part after it
                     return_part = first_line.split(":", 1)[1].strip()
                     returnType = return_part
+        # Parse documentation
+        documentation = parse_documentation(property.declaration)
+
 
     return TcProperty(
         name=property.name,
         returnType=returnType,
         get=load_get_property(get=property.get),
         set=load_set_property(set=property.set),
+        documentation=documentation,
     )
 
 
@@ -556,10 +560,14 @@ class TcPouHandler(FileHandler):
         properties = []
         if hasattr(_pou, "property") and _pou.property:
             properties = [load_property(property=prop) for prop in _pou.property]
+        for prop in properties:
+            prop.parent = _pou.name
 
         methods = []
         if hasattr(_pou, "method") and _pou.method:
             methods = [load_method(method=meth) for meth in _pou.method]
+        for meth in methods:
+            meth.parent = _pou.name
 
         # Parse extends and implements from declaration
         extends = None
@@ -595,7 +603,7 @@ class TcPouHandler(FileHandler):
             # Parse documentation
             documentation = parse_documentation(_pou.declaration)
 
-        return TcPou(
+        tcPou = TcPou(
             name=_pou.name,
             path=path.resolve(),
             declaration=_pou.declaration,
@@ -607,6 +615,12 @@ class TcPouHandler(FileHandler):
             variable_sections=variable_sections,
             documentation=documentation,
         )
+        for prop in properties:
+            prop.parent = tcPou
+        for meth in methods:
+            meth.parent = tcPou        
+
+        return tcPou
 
 
 class TcItfHandler(FileHandler):
