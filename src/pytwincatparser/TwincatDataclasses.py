@@ -120,6 +120,7 @@ class TcProperty(TcBase):
     returnType: Optional[str] = None
     get: Optional[TcGet] = None
     set: Optional[TcSet] = None
+    documentation: Optional[TcDocumentation] = None
 
     def __post_init__(self):
         TcBase.__post_init__(self)
