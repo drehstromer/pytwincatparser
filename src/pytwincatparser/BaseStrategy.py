@@ -6,6 +6,8 @@ from .TwincatDataclasses import TcObjects
 
 class BaseStrategy(ABC): # extract to seperate file
 
+    def __init__(self):
+        super().__init__()
 
     @abstractmethod
     def check_strategy(self, path:Path) -> bool:
@@ -14,4 +16,3 @@ class BaseStrategy(ABC): # extract to seperate file
     @abstractmethod
     def load_objects(self, path:Path) -> List[TcObjects]:
         raise NotImplementedError()
-    
