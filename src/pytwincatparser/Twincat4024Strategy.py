@@ -1,7 +1,7 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from pathlib import Path
+from pathlib import Path, PurePath, PureWindowsPath
 from typing import List, Optional
 
 from .BaseStrategy import BaseStrategy
@@ -529,7 +529,7 @@ class PlcProjectHandler(FileHandler):
                     compile_elements.append(elem)
 
         for elem in compile_elements:
-            object_paths.append((path.parent / Path(elem.include)).resolve())
+            object_paths.append((path.parent / Path(PureWindowsPath(elem.include))).resolve())
 
 
         return TcPlcProject(
@@ -737,9 +737,11 @@ class Twincat4024Strategy(BaseStrategy):
         return False
 
     def _load_tc_object(self, path: Path) -> TcObjects:
-        _path = Path(path)
+        _path = PurePath(path)
+        logger.error(f"try to load: {_path}")
         if self._check_handler(suffix=_path.suffix):
             handler = get_handler(suffix=_path.suffix)
+            logger.error(f"load: {path.name} with handler: {handler.__class__.__name__}")
             return handler.load_object(path)
         else:
             return None
