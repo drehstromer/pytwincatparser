@@ -14,7 +14,7 @@ class TcBase(ABC):
 
     def __post_init__(self):
         if self.sub_paths is None:
-            self.sub_paths = []
+            self.sub_paths = []    
 
     @abstractmethod
     def get_identifier(self) -> str:
@@ -207,21 +207,47 @@ class TcDut(TcBase):
         _identifier += self.name
         return _identifier
 
+
+@dataclass
+class TcDependency(TcBase):
+    version : str = ""
+    category : str = ""
+
+    def __post_init__(self):
+        TcBase.__post_init__(self)
+
+    def get_identifier(self) -> str:
+        return ""
+
+
+
 @dataclass
 class TcPlcProject(TcBase):
     """Represents a plc project in a TwinCAT solution."""
 
     default_namespace: str = ""
     version: str = ""
-    object_paths: Optional[List[Path]] = None
+    dependencies: Optional[List[TcDependency]] = None
+    pous: Optional[List[TcPou]] = None
+    duts: Optional[List[TcDut]] = None
+    itfs: Optional[List[TcItf]] = None
 
     def __post_init__(self):
-        if self.object_paths is None:
-            self.object_paths = []
+        if self.dependencies is None:
+            self.dependencies = []              
+        if self.pous is None:
+            self.pous = []    
+        if self.duts is None:
+            self.duts = []    
+        if self.itfs is None:
+            self.itfs = []    
+
+
         TcBase.__post_init__(self)
 
     def get_identifier(self) -> str:
         return self.name
+    
 
 
 
