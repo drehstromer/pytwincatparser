@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
-from .TwincatDataclasses import TcObjects
+from .TwincatDataclasses import Objects
 
 
 class BaseStrategy(ABC): # extract to seperate file
@@ -14,5 +14,5 @@ class BaseStrategy(ABC): # extract to seperate file
         raise NotImplementedError()
     
     @abstractmethod
-    def load_objects(self, path:Path) -> List[TcObjects]:
+    def load_objects(self, path:Path) -> List[Objects]:
         raise NotImplementedError()

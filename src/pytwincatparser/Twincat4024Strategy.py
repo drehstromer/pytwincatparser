@@ -17,21 +17,21 @@ from .TwincatObjects.tc_plc_object import (
     TcPlcObject,
 )
 from .TwincatObjects.tc_plc_project import Compile, Project, PlaceholderReference
-from .TwincatDataclasses import (
-    TcDocumentation,
-    TcDut,
-    TcGet,
-    TcItf,
-    TcMethod,
-    TcObjects,
-    TcPlcProject,
-    TcPou,
-    TcProperty,
-    TcSet,
-    TcVariable,
-    TcVariableSection,
-    TcDependency,
-)
+from . import TwincatDataclasses as tcd
+#     Documentation,
+#     Dut,
+#     Get,
+#     Itf,
+#     Method,
+#     Objects,
+#     PlcProject,
+#     Pou,
+#     Property,
+#     Set,
+#     Variable,
+#     VariableSection,
+#     Dependency,
+# ) as tdc
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 
-def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
+def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
     """
     Parse documentation comments from a declaration string.
 
@@ -104,7 +104,7 @@ def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
     comment_text = "\n".join(comments)
 
     # Parse documentation tags
-    doc = TcDocumentation()
+    doc = tcd.Documentation()
 
     # Define regex patterns for documentation tags
     details_pattern = re.compile(r"@details\s*(.*?)(?=@\w+|\Z)", re.DOTALL)
@@ -152,7 +152,7 @@ def parse_documentation(declaration: str) -> Optional[TcDocumentation]:
     return doc
 
 
-def parse_variable_sections(declaration: str) -> List[TcVariableSection]:
+def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
     """
     Parse variable sections from a declaration string.
 
@@ -188,7 +188,7 @@ def parse_variable_sections(declaration: str) -> List[TcVariableSection]:
         section_content = section_match.group(2).strip()
 
         # Create a new section
-        section = TcVariableSection(section_type=section_type)
+        section = tcd.VariableSection(section_type=section_type)
 
         # Split the section content into lines
         lines = section_content.split("\n")
@@ -249,7 +249,7 @@ def parse_variable_sections(declaration: str) -> List[TcVariableSection]:
                     var_initial_value = type_init_parts[1].strip()
 
                 # Create the variable
-                current_var = TcVariable(
+                current_var = tcd.Variable(
                     name=var_name,
                     type=var_type,
                     initial_value=var_initial_value,
@@ -272,7 +272,7 @@ def parse_variable_sections(declaration: str) -> List[TcVariableSection]:
         struct_content = struct_match.group(1).strip()
 
         # Create a new section for the struct
-        section = TcVariableSection(section_type="STRUCT")
+        section = tcd.VariableSection(section_type="STRUCT")
 
         # Split the struct content into lines
         lines = struct_content.split("\n")
@@ -333,7 +333,7 @@ def parse_variable_sections(declaration: str) -> List[TcVariableSection]:
                     var_initial_value = type_init_parts[1].strip()
 
                 # Create the variable
-                current_var = TcVariable(
+                current_var = tcd.Variable(
                     name=var_name,
                     type=var_type,
                     initial_value=var_initial_value,
@@ -404,7 +404,7 @@ def load_method(method: Method):
         # Parse documentation
         documentation = parse_documentation(method.declaration)
 
-    return TcMethod(
+    return tcd.Method(
         name=method.name,
         accessModifier=accessModifier,
         returnType=returnType,
@@ -436,7 +436,7 @@ def load_property(property: Property):
         documentation = parse_documentation(property.declaration)
 
 
-    return TcProperty(
+    return tcd.Property(
         name=property.name,
         returnType=returnType,
         get=load_get_property(get=property.get),
@@ -454,7 +454,7 @@ def load_get_property(get: Get):
     if hasattr(get.implementation, "st"):
         implementation_text = get.implementation.st
 
-    return TcGet(
+    return tcd.Get(
         name=get.name, declaration=get.declaration, implementation=implementation_text
     )
 
@@ -468,17 +468,17 @@ def load_set_property(set: Set):
     if hasattr(set.implementation, "st"):
         implementation_text = set.implementation.st
 
-    return TcSet(
+    return tcd.Set(
         name=set.name, declaration=set.declaration, implementation=implementation_text
     )
 
-def parse_placeholder_reference(placeholder : PlaceholderReference) -> TcDependency:
+def parse_placeholder_reference(placeholder : PlaceholderReference) -> tcd.Dependency:
 
     pattern = r"^(.*?),\s*([\d\.\*]+)\s*\((.*?)\)$"
     match = re.match(pattern, placeholder.default_resolution)
     if match:
         name, version, vendor = match.groups()
-        return TcDependency(name=name,
+        return tcd.Dependency(name=name,
                             version=version,
                             category=vendor)
 
@@ -494,7 +494,7 @@ class FileHandler(ABC):
         super().__init__()
 
     @abstractmethod
-    def load_object(self, path: Path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path: Path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         raise NotImplementedError()
 
 
@@ -528,7 +528,7 @@ class SolutionHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".sln")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         raise NotImplementedError("SolutionFileHandler not implemented")
 
 
@@ -536,7 +536,7 @@ class TwincatProjectHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".tsproj")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         raise NotImplementedError("TwincatProjectHandler not implemented")
 
 
@@ -544,14 +544,14 @@ class XtiHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".xti")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         raise NotImplementedError("XtiHandler not implemented")
     
 class TcTtoHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".tctto")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         raise NotImplementedError("tcttoHandler not implemented")
 
 
@@ -560,14 +560,14 @@ class PlcProjectHandler(FileHandler):
         super().__init__(suffix=".plcproj")  
 
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         _prj: Project = self.parser.parse(path, Project)
         if _prj is None:
             return None
 
         # Sub Elements
         object_paths: List[Path] = []
-        dependencies: List[TcDependency] = []
+        dependencies: List[tcd.Dependency] = []
         compile_elements: List[Compile] = []
         for object in _prj.item_group:
             for elem in object.compile:
@@ -585,7 +585,7 @@ class PlcProjectHandler(FileHandler):
             object_paths.append((path.parent / Path(PureWindowsPath(elem.include))).resolve())
 
 
-        plcproj = TcPlcProject(
+        plcproj = tcd.PlcProject(
             name=_prj.property_group.name,
             path=path.resolve(),
             default_namespace=_prj.property_group.default_namespace,
@@ -608,7 +608,7 @@ class TcPouHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".tcpou")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         _pou: Pou = self.parser.parse(path, TcPlcObject).pou
         if _pou is None:
             return None
@@ -664,7 +664,7 @@ class TcPouHandler(FileHandler):
             # Parse documentation
             documentation = parse_documentation(_pou.declaration)
 
-        tcPou = TcPou(
+        tcPou = tcd.Pou(
             name=_pou.name,
             path=path.resolve(),
             declaration=_pou.declaration,
@@ -678,7 +678,7 @@ class TcPouHandler(FileHandler):
 
         if parent is not None:
             tcPou.parent = parent
-            if parent.__class__ == TcPlcProject:
+            if parent.__class__ == tcd.PlcProject:
                 if hasattr(parent, "name_space"):
                     tcPou.name_space = parent.name_space
                 if hasattr(parent, "pous"):
@@ -702,9 +702,9 @@ class TcPouHandler(FileHandler):
 
 class TcItfHandler(FileHandler):
     def __init__(self):
-        super().__init__(suffix=".tcitf")
+        super().__init__(suffix=".tcio")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         _itf: Itf = self.parser.parse(path, TcPlcObject).itf
         if _itf is None:
             return None
@@ -738,7 +738,7 @@ class TcItfHandler(FileHandler):
                         interface.strip() for interface in extends_part.split(",")
                     ]
 
-        tcitf = TcItf(
+        tcitf = tcd.Itf(
             name=_itf.name,
             path=path.resolve(),
             extends=extends,
@@ -754,7 +754,7 @@ class TcItfHandler(FileHandler):
 
         if parent is not None:
             tcitf.parent = parent
-            if parent.__class__ == TcPlcProject:
+            if parent.__class__ == tcd.PlcProject:
                 if hasattr(parent, "name_space"):
                     tcitf.name_space = parent.name_space
                 if hasattr(parent, "itfs"):
@@ -770,7 +770,7 @@ class TcDutHandler(FileHandler):
     def __init__(self):
         super().__init__(suffix=".tcdut")
 
-    def load_object(self, path, obj_store: List[TcObjects], parent: TcObjects|None = None):
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
         _dut: Dut = self.parser.parse(path, TcPlcObject).dut
         if _dut is None:
             return None
@@ -784,7 +784,7 @@ class TcDutHandler(FileHandler):
             # Parse documentation
             documentation = parse_documentation(_dut.declaration)
 
-        dut = TcDut(
+        dut = tcd.Dut(
             name=_dut.name,
             path=path.resolve(),
             declaration=_dut.declaration,
@@ -794,7 +794,7 @@ class TcDutHandler(FileHandler):
 
         if parent is not None:
             dut.parent = parent
-            if parent.__class__ == TcPlcProject:
+            if parent.__class__ == tcd.PlcProject:
                 if hasattr(parent, "name_space"):
                     dut.name_space = parent.name_space
                 if hasattr(parent, "duts"):
@@ -827,9 +827,9 @@ class Twincat4024Strategy(BaseStrategy):
             
 
 
-    def load_objects(self, path: Path) -> List[TcObjects]:
+    def load_objects(self, path: Path) -> List[tcd.Objects]:
         _path = PurePath(path)
-        _obj: List[TcObjects] = []
+        _obj: List[tcd.Objects] = []
         if is_handler_in_list(suffix=_path.suffix):
             handler = get_handler(suffix=_path.suffix)
             handler.load_object(path,obj_store=_obj)

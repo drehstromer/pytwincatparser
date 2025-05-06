@@ -1,7 +1,7 @@
 from .BaseStrategy import BaseStrategy
 from typing import List
 from pathlib import Path
-from .TwincatDataclasses import TcObjects
+from .TwincatDataclasses import Objects
 
 
 _strategies: List[BaseStrategy] = []
@@ -42,7 +42,7 @@ class Loader:
     def strategy(self, strategy: BaseStrategy) -> None:
         self._strategy = strategy
 
-    def load_objects(self, path: Path) -> List[TcObjects] | None:
+    def load_objects(self, path: Path) -> List[Objects] | None:
         _path = Path(path)
         return self._strategy.load_objects(path=_path)
 
