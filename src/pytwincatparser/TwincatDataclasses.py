@@ -5,16 +5,18 @@ from abc import ABC, abstractmethod
 
 
 @dataclass
-class TcBase(ABC):
+class Base(ABC):
     path: Path = None
     sub_paths: Optional[List[Path]] = None
     parent: Optional[object | None] = None
     name_space: Optional[str] = None
     name: Optional[str] = None
+    kind: str = ""
 
     def __post_init__(self):
         if self.sub_paths is None:
             self.sub_paths = []    
+        self.kind = self.__class__.__name__.lower()
 
     @abstractmethod
     def get_identifier(self) -> str:
@@ -24,7 +26,7 @@ class TcBase(ABC):
 
 
 @dataclass
-class TcDocumentation(TcBase):
+class Documentation(Base):
     details: Optional[str] = None
     usage: Optional[str] = None
     brief: Optional[str] = None
@@ -34,13 +36,13 @@ class TcDocumentation(TcBase):
     def __post_init__(self):
         if self.custom_tags is None:
             self.custom_tags = {}
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
 
 @dataclass
-class TcVariable(TcBase):
+class Variable(Base):
     type: str = ""
     initial_value: Optional[str] = None
     comment: Optional[str] = None
@@ -49,61 +51,61 @@ class TcVariable(TcBase):
     def __post_init__(self):
         if self.attributes is None:
             self.attributes = {}
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
 
 @dataclass
-class TcVariableSection(TcBase):
+class VariableSection(Base):
     section_type: str = (
         ""  # VAR, VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT, VAR_STAT, VAR CONSTANT
     )
-    variables: List[TcVariable] = None
+    variables: List[Variable] = None
 
     def __post_init__(self):
         if self.variables is None:
             self.variables = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
 
 @dataclass
-class TcGet(TcBase):
+class Get(Base):
     declaration: str = ""
     implementation: str = ""
 
     def __post_init__(self):
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
 
 @dataclass
-class TcSet(TcBase):
+class Set(Base):
     declaration: str = ""
     implementation: str = ""
 
     def __post_init__(self):
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
 
 @dataclass
-class TcMethod(TcBase):
+class Method(Base):
     accessModifier: Optional[str] = None
     returnType: Optional[str] = None
     declaration: str = ""
     implementation: str = ""
-    variable_sections: Optional[List[TcVariableSection]] = None
-    documentation: Optional[TcDocumentation] = None
+    variable_sections: Optional[List[VariableSection]] = None
+    documentation: Optional[Documentation] = None
 
     def __post_init__(self):
         if self.variable_sections is None:
             self.variable_sections = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         _identifier = ""
@@ -116,14 +118,14 @@ class TcMethod(TcBase):
         return _identifier
 
 @dataclass
-class TcProperty(TcBase):
+class Property(Base):
     returnType: Optional[str] = None
-    get: Optional[TcGet] = None
-    set: Optional[TcSet] = None
-    documentation: Optional[TcDocumentation] = None
+    get: Optional[Get] = None
+    set: Optional[Set] = None
+    documentation: Optional[Documentation] = None
 
     def __post_init__(self):
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         _identifier = ""
@@ -137,16 +139,16 @@ class TcProperty(TcBase):
 
 
 @dataclass
-class TcPou(TcBase):
+class Pou(Base):
     implements: Optional[list[str]] = None
     extends: Optional[str] = None
     declaration: str = ""
     implementation: str = ""
 
-    methods: Optional[list[TcMethod]] = None
-    properties: Optional[list[TcProperty]] = None
-    variable_sections: Optional[List[TcVariableSection]] = None
-    documentation: Optional[TcDocumentation] = None
+    methods: Optional[list[Method]] = None
+    properties: Optional[list[Property]] = None
+    variable_sections: Optional[List[VariableSection]] = None
+    documentation: Optional[Documentation] = None
 
     def __post_init__(self):
         if self.implements is None:
@@ -157,7 +159,7 @@ class TcPou(TcBase):
             self.properties = []
         if self.variable_sections is None:
             self.variable_sections = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         _identifier = ""
@@ -167,11 +169,12 @@ class TcPou(TcBase):
         return _identifier
 
 @dataclass
-class TcItf(TcBase):
+class Itf(Base):
     extends: Optional[list[str]] = None
 
-    methods: Optional[list[TcMethod]] = None
-    properties: Optional[list[TcProperty]] = None
+    methods: Optional[list[Method]] = None
+    properties: Optional[list[Property]] = None
+    documentation: Optional[Documentation] = None
 
     def __post_init__(self):
         if self.extends is None:
@@ -180,7 +183,7 @@ class TcItf(TcBase):
             self.methods = []
         if self.properties is None:
             self.properties = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         _identifier = ""
@@ -190,15 +193,15 @@ class TcItf(TcBase):
         return _identifier
 
 @dataclass
-class TcDut(TcBase):
+class Dut(Base):
     declaration: str = ""
-    variable_sections: Optional[List[TcVariableSection]] = None
-    documentation: Optional[TcDocumentation] = None
+    variable_sections: Optional[List[VariableSection]] = None
+    documentation: Optional[Documentation] = None
 
     def __post_init__(self):
         if self.variable_sections is None:
             self.variable_sections = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         _identifier = ""
@@ -209,12 +212,12 @@ class TcDut(TcBase):
 
 
 @dataclass
-class TcDependency(TcBase):
+class Dependency(Base):
     version : str = ""
     category : str = ""
 
     def __post_init__(self):
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return ""
@@ -222,15 +225,15 @@ class TcDependency(TcBase):
 
 
 @dataclass
-class TcPlcProject(TcBase):
+class PlcProject(Base):
     """Represents a plc project in a TwinCAT solution."""
 
     default_namespace: str = ""
     version: str = ""
-    dependencies: Optional[List[TcDependency]] = None
-    pous: Optional[List[TcPou]] = None
-    duts: Optional[List[TcDut]] = None
-    itfs: Optional[List[TcItf]] = None
+    dependencies: Optional[List[Dependency]] = None
+    pous: Optional[List[Pou]] = None
+    duts: Optional[List[Dut]] = None
+    itfs: Optional[List[Itf]] = None
 
     def __post_init__(self):
         if self.dependencies is None:
@@ -243,7 +246,7 @@ class TcPlcProject(TcBase):
             self.itfs = []    
 
 
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
     def get_identifier(self) -> str:
         return self.name
@@ -254,23 +257,23 @@ class TcPlcProject(TcBase):
 
 
 @dataclass
-class TcProject(TcBase):
+class Project(Base):
     """Represents a project in a TwinCAT solution."""
 
     def __post_init__(self):
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
 @dataclass
-class TcSolution(TcBase):
+class Solution(Base):
     """Represents a TwinCAT solution with its projects."""
 
-    _projects: List[TcProject] = None
+    _projects: List[Project] = None
 
     def __post_init__(self):
         if self._projects is None:
             self._projects = []
-        TcBase.__post_init__(self)
+        Base.__post_init__(self)
 
 
 
-TcObjects = TcBase
+Objects = Base
