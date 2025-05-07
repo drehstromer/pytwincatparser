@@ -12,10 +12,13 @@ class Base(ABC):
     name_space: Optional[str] = None
     name: Optional[str] = None
     kind: str = ""
+    labels: Optional[List[str]] = None
 
     def __post_init__(self):
         if self.sub_paths is None:
             self.sub_paths = []    
+        if self.labels is None:
+            self.labels = []    
         self.kind = self.__class__.__name__.lower()
 
     @abstractmethod
@@ -243,6 +246,7 @@ class PlcProject(Base):
     default_namespace: str = ""
     version: str = ""
     dependencies: Optional[List[Dependency]] = None
+    documentation: Optional[Documentation] = None
     pous: Optional[List[Pou]] = None
     duts: Optional[List[Dut]] = None
     itfs: Optional[List[Itf]] = None
