@@ -178,11 +178,13 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
         # Split the section content into lines
         lines = section_content.split("\n")
 
-        # Process each line
-        current_var = None
-        current_attributes = {}
+
 
         for line in lines:
+            # Process each line
+            current_var = None
+            current_attributes = {}
+
             line = line.strip()
             if not line:
                 continue
@@ -198,8 +200,9 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
             # Check for variable declaration
             if ":" in line:
                 # If we have a previous variable, add it to the list
-                if current_var:
-                    variables.append(current_var)
+                # if current_var:
+                #     variables.append(current_var)
+                #     current_var = None
 
                 # Parse the new variable
                 var_parts = line.split(":", 1)
@@ -232,6 +235,8 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
                     type_init_parts = type_value_parts.split(":=", 1)
                     var_type = type_init_parts[0].strip()
                     var_initial_value = type_init_parts[1].strip()
+
+                var_type = var_type.split(";")[0]
 
                 doc = tcd.Documentation(details=var_comment)
 
@@ -246,12 +251,16 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
                     documentation=doc,
                 )
 
-                # Reset attributes for the next variable
-                current_attributes = {}
+                current_var.labels.append(var_type)
+                variables.append(current_var)
 
-        # Add the last variable if there is one
-        if current_var:
-            variables.append(current_var)
+
+            #         # Reset attributes for the next variable
+            #         current_attributes = {}
+
+            # # Add the last variable if there is one
+            # if current_var:
+            #     variables.append(current_var)
 
     # Process STRUCT sections for DUTs
     for struct_match in struct_pattern.finditer(declaration):
@@ -260,11 +269,14 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
         # Split the struct content into lines
         lines = struct_content.split("\n")
 
-        # Process each line
-        current_var = None
-        current_attributes = {}
+
 
         for line in lines:
+
+            # Process each line
+            current_var = None
+            current_attributes = {}
+
             line = line.strip()
             if not line:
                 continue
@@ -280,8 +292,9 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
             # Check for variable declaration
             if ":" in line:
                 # If we have a previous variable, add it to the list
-                if current_var:
-                    variables.append(current_var)
+                # if current_var:
+                #     variables.append(current_var)
+                #     current_var = None
 
                 # Parse the new variable
                 var_parts = line.split(":", 1)
@@ -315,6 +328,10 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
                     var_type = type_init_parts[0].strip()
                     var_initial_value = type_init_parts[1].strip()
 
+                var_type = var_type.split(";")[0]
+
+                doc = tcd.Documentation(details=var_comment)
+
                 # Create the variable
                 current_var = tcd.Variable(
                     name=var_name,
@@ -323,14 +340,16 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
                     comment=var_comment,
                     attributes=current_attributes if current_attributes else None,
                     section_type="STRUCT".lower(),
+                    documentation=doc,
                 )
+                current_var.labels.append(var_type)
+                variables.append(current_var)
+        #         # Reset attributes for the next variable
+        #         current_attributes = {}
 
-                # Reset attributes for the next variable
-                current_attributes = {}
-
-        # Add the last variable if there is one
-        if current_var:
-            variables.append(current_var)
+        # # Add the last variable if there is one
+        # if current_var:
+        #     variables.append(current_var)
 
     return variables
 
@@ -397,6 +416,11 @@ def load_method(method: Method):
         var.parent = tcMeth
         var.name_space = tcMeth.name_space
 
+    if returnType is not None:
+        tcMeth.labels.append(returnType)
+    if accessModifier is not None:
+        tcMeth.labels.append(accessModifier)
+
     tcMeth.variables = variables
     return tcMeth
 
@@ -422,13 +446,24 @@ def load_property(property: Property):
         documentation = parse_documentation(property.declaration)
 
 
-    return tcd.Property(
+    tcProp = tcd.Property(
         name=property.name,
         returnType=returnType,
         get=load_get_property(get=property.get),
         set=load_set_property(set=property.set),
         documentation=documentation,
     )
+
+    if returnType is not None:
+        tcProp.labels.append(returnType)
+    if tcProp.get is not None and tcProp.set is not None:
+        tcProp.labels.append("Get/Set")
+    elif tcProp.get is not None:
+        tcProp.labels.append("Get")
+    elif tcProp.set is not None:
+        tcProp.labels.append("Set")
+
+    return tcProp
 
 
 def load_get_property(get: Get):
@@ -570,6 +605,7 @@ class PlcProjectHandler(FileHandler):
         for elem in compile_elements:
             object_paths.append((path.parent / Path(PureWindowsPath(elem.include))).resolve())
 
+        doc = tcd.Documentation(details=_prj.property_group.description)
 
         plcproj = tcd.PlcProject(
             name=_prj.property_group.name,
@@ -578,14 +614,19 @@ class PlcProjectHandler(FileHandler):
             name_space=_prj.property_group.default_namespace,
             version=_prj.property_group.project_version,
             sub_paths=object_paths,
-            dependencies=dependencies
+            dependencies=dependencies,
+            documentation=doc,
             )
 
+        
 
         for object_path in object_paths:
             if is_handler_in_list(object_path.suffix):
                 handler = get_handler(object_path.suffix)
                 handler.load_object(path=object_path, obj_store=obj_store, parent=plcproj)
+
+        if plcproj.version is not None:
+            plcproj.labels.append(plcproj.version)
 
         obj_store.append(plcproj)
 
@@ -685,6 +726,11 @@ class TcPouHandler(FileHandler):
         tcPou.properties = properties
         tcPou.methods = methods   
 
+        if extends is not None:
+            tcPou.labels.append("Ext: "+ extends)
+        if implements is not None:
+            tcPou.labels.append("Impl: " + ", ".join([impl for impl in implements]))
+
         obj_store.append(tcPou)
         obj_store.extend(methods)
         obj_store.extend(properties)
@@ -751,6 +797,10 @@ class TcItfHandler(FileHandler):
                 if hasattr(parent, "itfs"):
                     parent.itfs.append(tcitf)
 
+        if extends is not None:
+            tcitf.labels.append("Ext: " + ", ".join([ext for ext in extends]))
+
+
         obj_store.append(tcitf)
         obj_store.extend(methods)
         obj_store.extend(properties)
@@ -793,7 +843,7 @@ class TcDutHandler(FileHandler):
                     dut.name_space = parent.name_space
                 if hasattr(parent, "duts"):
                     parent.duts.append(dut)
-                    
+
         dut.variables = variables
 
         obj_store.append(dut)
