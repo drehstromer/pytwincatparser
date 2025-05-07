@@ -29,7 +29,6 @@ class Base(ABC):
 class Documentation(Base):
     details: Optional[str] = None
     usage: Optional[str] = None
-    brief: Optional[str] = None
     returns: Optional[str] = None
     custom_tags: Optional[Dict[str, str]] = None
 
@@ -209,6 +208,25 @@ class Dut(Base):
             _identifier = self.name_space + "."
         _identifier += self.name
         return _identifier
+    
+
+@dataclass
+class Gvl(Base):
+    declaration: str = ""
+    variable_sections: Optional[List[VariableSection]] = None
+    documentation: Optional[Documentation] = None
+
+    def __post_init__(self):
+        if self.variable_sections is None:
+            self.variable_sections = []
+        Base.__post_init__(self)
+
+    def get_identifier(self) -> str:
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        _identifier += self.name
+        return _identifier
 
 
 @dataclass
@@ -234,6 +252,7 @@ class PlcProject(Base):
     pous: Optional[List[Pou]] = None
     duts: Optional[List[Dut]] = None
     itfs: Optional[List[Itf]] = None
+    gvls: Optional[List[Gvl]] = None
 
     def __post_init__(self):
         if self.dependencies is None:
@@ -244,6 +263,8 @@ class PlcProject(Base):
             self.duts = []    
         if self.itfs is None:
             self.itfs = []    
+        if self.gvls is None:
+            self.gvls = []    
 
 
         Base.__post_init__(self)

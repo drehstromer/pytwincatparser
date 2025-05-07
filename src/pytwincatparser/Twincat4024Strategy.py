@@ -15,23 +15,11 @@ from .TwincatObjects.tc_plc_object import (
     Property,
     Set,
     TcPlcObject,
+    Gvl,
 )
 from .TwincatObjects.tc_plc_project import Compile, Project, PlaceholderReference
 from . import TwincatDataclasses as tcd
-#     Documentation,
-#     Dut,
-#     Get,
-#     Itf,
-#     Method,
-#     Objects,
-#     PlcProject,
-#     Pou,
-#     Property,
-#     Set,
-#     Variable,
-#     VariableSection,
-#     Dependency,
-# ) as tdc
+
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -57,7 +45,7 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
 
     # Extract only the part before the first variable block
     var_pattern = re.compile(
-        r"VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|[ ]CONSTANT)?", re.DOTALL
+        r"VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|_GLOBAL|[ ]CONSTANT)?", re.DOTALL
     )
     struct_pattern = re.compile(r"STRUCT", re.DOTALL)
 
@@ -167,7 +155,7 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
 
     # Define regex patterns
     section_pattern = re.compile(
-        r"(VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|[ ]CONSTANT)?)\s*(.*?)END_VAR",
+        r"(VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|_GLOBAL|[ ]CONSTANT)?)\s*(.*?)END_VAR",
         re.DOTALL,
     )
     struct_pattern = re.compile(r"STRUCT\s*(.*?)END_STRUCT", re.DOTALL)
@@ -804,6 +792,42 @@ class TcDutHandler(FileHandler):
 
 
 
+class TcGvlHandler(FileHandler):
+    def __init__(self):
+        super().__init__(suffix=".tcgvl")
+
+    def load_object(self, path, obj_store: List[tcd.Objects], parent: tcd.Objects|None = None):
+        _gvl: Gvl = self.parser.parse(path, TcPlcObject).gvl
+        if _gvl is None:
+            return None
+
+        variable_sections = []
+        documentation = None
+        if _gvl.declaration:
+            # Parse variable sections
+            variable_sections = parse_variable_sections(_gvl.declaration)
+
+            # Parse documentation
+            documentation = parse_documentation(_gvl.declaration)
+
+        gvl:tcd.Gvl = tcd.Gvl(
+            name=_gvl.name,
+            path=path.resolve(),
+            declaration=_gvl.declaration,
+            variable_sections=variable_sections,
+            documentation=documentation,
+        )
+
+        if parent is not None:
+            gvl.parent = parent
+            if parent.__class__ == tcd.PlcProject:
+                if hasattr(parent, "name_space"):
+                    gvl.name_space = parent.name_space
+                if hasattr(parent, "gvls"):
+                    parent.gvls.append(gvl)
+
+        obj_store.append(gvl)
+
 
 
 #add_handler(handler=SolutionHandler())
@@ -813,6 +837,7 @@ add_handler(handler=PlcProjectHandler())
 add_handler(handler=TcPouHandler())
 add_handler(handler=TcItfHandler())
 add_handler(handler=TcDutHandler())
+add_handler(handler=TcGvlHandler())
 #add_handler(handler=TcTtoHandler())
 
 

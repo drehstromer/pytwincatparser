@@ -34,6 +34,37 @@ class Dut:
 
 
 @dataclass
+class Gvl:
+    class Meta:
+        name = "GVL"
+
+    name: Optional[str] = field(
+        default=None,
+        metadata={
+            "name": "Name",
+            "type": "Attribute",
+            "required": True,
+        },
+    )
+    id: Optional[str] = field(
+        default=None,
+        metadata={
+            "name": "Id",
+            "type": "Attribute",
+            "required": True,
+        },
+    )
+    declaration: Optional[str] = field(
+        default=None,
+        metadata={
+            "name": "Declaration",
+            "type": "Element",
+            "required": True,
+        },
+    )
+
+
+@dataclass
 class Folder:
     name: Optional[str] = field(
         default=None,
@@ -435,6 +466,13 @@ class TcPlcObject:
         default=None,
         metadata={
             "name": "Itf",
+            "type": "Element",
+        },
+    )
+    gvl: Optional[Gvl] = field(
+        default=None,
+        metadata={
+            "name": "GVL",
             "type": "Element",
         },
     )

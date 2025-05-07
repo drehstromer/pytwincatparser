@@ -11,6 +11,7 @@ from .tc_plc_object import (
     Property,
     Set,
     TcPlcObject,
+    Gvl,
 )
 
 from .tc_twincat_project import (
@@ -106,5 +107,6 @@ __all__ = [
     "D",
     "O1",
     "V",
+    "Gvl",
 ]
 
