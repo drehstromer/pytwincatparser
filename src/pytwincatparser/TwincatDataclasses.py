@@ -46,6 +46,7 @@ class Variable(Base):
     initial_value: Optional[str] = None
     comment: Optional[str] = None
     attributes: Optional[Dict[str, str]] = None
+    documentation: Optional[Documentation] = None
     section_type: str = None
 
     def __post_init__(self):
@@ -54,22 +55,14 @@ class Variable(Base):
         Base.__post_init__(self)
 
     def get_identifier(self) -> str:
-        return ""
-
-@dataclass
-class VariableSection(Base):
-    section_type: str = (
-        ""  # VAR, VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT, VAR_STAT, VAR CONSTANT
-    )
-    variables: List[Variable] = None
-
-    def __post_init__(self):
-        if self.variables is None:
-            self.variables = []
-        Base.__post_init__(self)
-
-    def get_identifier(self) -> str:
-        return ""
+        _identifier = ""
+        if self.name_space is not None:
+            _identifier = self.name_space + "."
+        if self.parent.name is not None:
+            _identifier += self.parent.name
+            _identifier += "."
+        _identifier += self.name
+        return _identifier
 
 @dataclass
 class Get(Base):
@@ -99,12 +92,12 @@ class Method(Base):
     returnType: Optional[str] = None
     declaration: str = ""
     implementation: str = ""
-    variable_sections: Optional[List[VariableSection]] = None
+    variables: Optional[List[Variable]] = None
     documentation: Optional[Documentation] = None
 
     def __post_init__(self):
-        if self.variable_sections is None:
-            self.variable_sections = []
+        if self.variables is None:
+            self.variables = []
         Base.__post_init__(self)
 
     def get_identifier(self) -> str:
@@ -147,7 +140,7 @@ class Pou(Base):
 
     methods: Optional[list[Method]] = None
     properties: Optional[list[Property]] = None
-    variable_sections: Optional[List[VariableSection]] = None
+    variables: Optional[List[Variable]] = None
     documentation: Optional[Documentation] = None
 
     def __post_init__(self):
@@ -157,8 +150,8 @@ class Pou(Base):
             self.methods = []
         if self.properties is None:
             self.properties = []
-        if self.variable_sections is None:
-            self.variable_sections = []
+        if self.variables is None:
+            self.variables = []
         Base.__post_init__(self)
 
     def get_identifier(self) -> str:
@@ -195,12 +188,12 @@ class Itf(Base):
 @dataclass
 class Dut(Base):
     declaration: str = ""
-    variable_sections: Optional[List[VariableSection]] = None
+    variables: Optional[List[Variable]] = None
     documentation: Optional[Documentation] = None
 
     def __post_init__(self):
-        if self.variable_sections is None:
-            self.variable_sections = []
+        if self.variables is None:
+            self.variables = []
         Base.__post_init__(self)
 
     def get_identifier(self) -> str:
@@ -214,12 +207,12 @@ class Dut(Base):
 @dataclass
 class Gvl(Base):
     declaration: str = ""
-    variable_sections: Optional[List[VariableSection]] = None
+    variables: Optional[List[Variable]] = None
     documentation: Optional[Documentation] = None
 
     def __post_init__(self):
-        if self.variable_sections is None:
-            self.variable_sections = []
+        if self.variables is None:
+            self.variables = []
         Base.__post_init__(self)
 
     def get_identifier(self) -> str:
