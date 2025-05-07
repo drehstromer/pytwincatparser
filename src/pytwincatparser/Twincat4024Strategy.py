@@ -243,6 +243,7 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
                     initial_value=var_initial_value,
                     comment=var_comment,
                     attributes=current_attributes if current_attributes else None,
+                    section_type=section_type,
                 )
 
                 # Reset attributes for the next variable
@@ -327,6 +328,7 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
                     initial_value=var_initial_value,
                     comment=var_comment,
                     attributes=current_attributes if current_attributes else None,
+                    section_type="STRUCT",
                 )
 
                 # Reset attributes for the next variable

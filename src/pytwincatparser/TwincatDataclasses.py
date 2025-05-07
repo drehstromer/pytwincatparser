@@ -46,6 +46,7 @@ class Variable(Base):
     initial_value: Optional[str] = None
     comment: Optional[str] = None
     attributes: Optional[Dict[str, str]] = None
+    section_type: str = None
 
     def __post_init__(self):
         if self.attributes is None:
