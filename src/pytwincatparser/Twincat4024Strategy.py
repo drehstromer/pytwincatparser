@@ -140,15 +140,15 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
     return doc
 
 
-def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
+def parse_variables(declaration: str) -> List[tcd.Variable]:
     """
-    Parse variable sections from a declaration string.
+    Parse variables from a declaration string.
 
     Args:
         declaration: The declaration string containing variable sections.
 
     Returns:
-        A list of TcVariableSection objects.
+        A list of tcd.Variable objects.
     """
     if not declaration:
         return []
@@ -167,16 +167,13 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
         re.MULTILINE | re.DOTALL,
     )
 
-    # Find all variable sections
-    sections = []
+    # Find all variables
+    variables = []
 
     # Process VAR sections
     for section_match in section_pattern.finditer(declaration):
         section_type = section_match.group(1).strip()
         section_content = section_match.group(2).strip()
-
-        # Create a new section
-        section = tcd.VariableSection(section_type=section_type)
 
         # Split the section content into lines
         lines = section_content.split("\n")
@@ -200,9 +197,9 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
 
             # Check for variable declaration
             if ":" in line:
-                # If we have a previous variable, add it to the section
+                # If we have a previous variable, add it to the list
                 if current_var:
-                    section.variables.append(current_var)
+                    variables.append(current_var)
 
                 # Parse the new variable
                 var_parts = line.split(":", 1)
@@ -236,6 +233,8 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
                     var_type = type_init_parts[0].strip()
                     var_initial_value = type_init_parts[1].strip()
 
+                doc = tcd.Documentation(details=var_comment)
+
                 # Create the variable
                 current_var = tcd.Variable(
                     name=var_name,
@@ -243,7 +242,8 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
                     initial_value=var_initial_value,
                     comment=var_comment,
                     attributes=current_attributes if current_attributes else None,
-                    section_type=section_type,
+                    section_type=section_type.lower(),
+                    documentation=doc,
                 )
 
                 # Reset attributes for the next variable
@@ -251,17 +251,11 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
 
         # Add the last variable if there is one
         if current_var:
-            section.variables.append(current_var)
-
-        # Add the section to the list
-        sections.append(section)
+            variables.append(current_var)
 
     # Process STRUCT sections for DUTs
     for struct_match in struct_pattern.finditer(declaration):
         struct_content = struct_match.group(1).strip()
-
-        # Create a new section for the struct
-        section = tcd.VariableSection(section_type="STRUCT")
 
         # Split the struct content into lines
         lines = struct_content.split("\n")
@@ -285,9 +279,9 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
 
             # Check for variable declaration
             if ":" in line:
-                # If we have a previous variable, add it to the section
+                # If we have a previous variable, add it to the list
                 if current_var:
-                    section.variables.append(current_var)
+                    variables.append(current_var)
 
                 # Parse the new variable
                 var_parts = line.split(":", 1)
@@ -328,7 +322,7 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
                     initial_value=var_initial_value,
                     comment=var_comment,
                     attributes=current_attributes if current_attributes else None,
-                    section_type="STRUCT",
+                    section_type="STRUCT".lower(),
                 )
 
                 # Reset attributes for the next variable
@@ -336,13 +330,9 @@ def parse_variable_sections(declaration: str) -> List[tcd.VariableSection]:
 
         # Add the last variable if there is one
         if current_var:
-            section.variables.append(current_var)
+            variables.append(current_var)
 
-        # Add the section to the list if it has variables
-        if section.variables:
-            sections.append(section)
-
-    return sections
+    return variables
 
 
 def load_method(method: Method):
@@ -357,7 +347,7 @@ def load_method(method: Method):
     # Parse access modifier and return type from declaration
     accessModifier = None
     returnType = None
-    variable_sections = []
+    variables = []
     documentation = None
 
     if method.declaration:
@@ -389,20 +379,26 @@ def load_method(method: Method):
                         accessModifier = possible_modifier
 
         # Parse variable sections
-        variable_sections = parse_variable_sections(method.declaration)
+        variables = parse_variables(method.declaration)
 
         # Parse documentation
         documentation = parse_documentation(method.declaration)
 
-    return tcd.Method(
+    tcMeth = tcd.Method(
         name=method.name,
         accessModifier=accessModifier,
         returnType=returnType,
         declaration=method.declaration,
         implementation=implementation_text,
-        variable_sections=variable_sections,
         documentation=documentation,
     )
+
+    for var in variables:
+        var.parent = tcMeth
+        var.name_space = tcMeth.name_space
+
+    tcMeth.variables = variables
+    return tcMeth
 
 
 def load_property(property: Property):
@@ -623,7 +619,7 @@ class TcPouHandler(FileHandler):
         # Parse extends and implements from declaration
         extends = None
         implements = None
-        variable_sections = []
+        variables = []
 
         if _pou.declaration:
             declaration_lines = _pou.declaration.strip().split("\n")
@@ -649,10 +645,12 @@ class TcPouHandler(FileHandler):
                     ]
 
             # Parse variable sections
-            variable_sections = parse_variable_sections(_pou.declaration)
+            variables = parse_variables(_pou.declaration)
 
             # Parse documentation
             documentation = parse_documentation(_pou.declaration)
+
+
 
         tcPou = tcd.Pou(
             name=_pou.name,
@@ -661,7 +659,6 @@ class TcPouHandler(FileHandler):
             implementation=implementation_text,
             extends=extends,
             implements=implements,
-            variable_sections=variable_sections,
             documentation=documentation,
         )
 
@@ -673,7 +670,10 @@ class TcPouHandler(FileHandler):
                     tcPou.name_space = parent.name_space
                 if hasattr(parent, "pous"):
                     parent.pous.append(tcPou)
-                
+        
+        for var in variables:
+            var.parent = tcPou
+            var.name_space = tcPou.name_space
         for prop in properties:
             prop.parent = tcPou
             prop.name_space = tcPou.name_space
@@ -681,6 +681,7 @@ class TcPouHandler(FileHandler):
             meth.parent = tcPou    
             meth.name_space = tcPou.name_space 
 
+        tcPou.variables = variables
         tcPou.properties = properties
         tcPou.methods = methods   
 
@@ -765,11 +766,11 @@ class TcDutHandler(FileHandler):
         if _dut is None:
             return None
 
-        variable_sections = []
+        variables = []
         documentation = None
         if _dut.declaration:
             # Parse variable sections
-            variable_sections = parse_variable_sections(_dut.declaration)
+            variables = parse_variables(_dut.declaration)
 
             # Parse documentation
             documentation = parse_documentation(_dut.declaration)
@@ -778,9 +779,12 @@ class TcDutHandler(FileHandler):
             name=_dut.name,
             path=path.resolve(),
             declaration=_dut.declaration,
-            variable_sections=variable_sections,
             documentation=documentation,
         )
+
+        for var in variables:
+            var.parent = dut
+            var.name_space = dut.name_space
 
         if parent is not None:
             dut.parent = parent
@@ -789,6 +793,8 @@ class TcDutHandler(FileHandler):
                     dut.name_space = parent.name_space
                 if hasattr(parent, "duts"):
                     parent.duts.append(dut)
+                    
+        dut.variables = variables
 
         obj_store.append(dut)
 
@@ -803,11 +809,11 @@ class TcGvlHandler(FileHandler):
         if _gvl is None:
             return None
 
-        variable_sections = []
+        variables = []
         documentation = None
         if _gvl.declaration:
             # Parse variable sections
-            variable_sections = parse_variable_sections(_gvl.declaration)
+            variables = parse_variables(_gvl.declaration)
 
             # Parse documentation
             documentation = parse_documentation(_gvl.declaration)
@@ -816,9 +822,12 @@ class TcGvlHandler(FileHandler):
             name=_gvl.name,
             path=path.resolve(),
             declaration=_gvl.declaration,
-            variable_sections=variable_sections,
             documentation=documentation,
         )
+    
+        for var in variables:
+            var.parent = gvl
+            var.name_space = gvl.name_space
 
         if parent is not None:
             gvl.parent = parent
@@ -827,6 +836,8 @@ class TcGvlHandler(FileHandler):
                     gvl.name_space = parent.name_space
                 if hasattr(parent, "gvls"):
                     parent.gvls.append(gvl)
+
+        gvl.variables = variables
 
         obj_store.append(gvl)
 
