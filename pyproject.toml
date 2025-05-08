@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pytwincatparser"
-version = "0.1.0"
+version = "0.4.23"
 description = "TwinCAT PLC file parser using xsdata"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "drehstromer", email = "privat@samuelruckli.ch"},
