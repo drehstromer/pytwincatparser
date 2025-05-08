@@ -1,5 +1,5 @@
 # pytwincatparser
-A Python package for parsing TwinCAT PLC files (TcPOU, TcDUT, TcIO).
+A Python package for parsing TwinCAT PLC files (TcPOU, TcDUT, TcIO, TcPlcProj, TcGvl, TcIO).
 
 ## Description
 
@@ -7,86 +7,53 @@ This package provides tools to parse and work with TwinCAT PLC files. It uses xs
 
 ## Features
 
-- Parse TwinCAT PLC files (.TcPOU, .TcDUT, .TcIO)
-- Access POU (Program Organization Units), DUT (Data Unit Types), and ITF (Interfaces)
-- Extract declarations, implementations, methods, and properties
-- Extract VAR Blocks
-- Extract Return Values
-- Extract Comments
-- Generate HTML documentation for TwinCAT objects
+- Parse TwinCAT PLC files (.TcPOU, .TcDUT, .TcIO, .TcGvl, .TcPlcProj)
+- Load the twincatfile in python dataclasses
+- parse variable blocks
+- parse documentation
+- parse dependencies
 
 ## Installation
 
-This project uses [uv](https://github.com/astral-sh/uv) as its package manager. To set up the development environment:
 
-### Windows
+```
+pip install pytwincatparser
 
-```powershell
-# Install uv if you don't have it
-pip install uv
-
-# Run the setup script
-.\setup_uv.ps1
 ```
 
 
 ## Usage
 
 ```python
-from pytwincatparser.TwincatParser import TwinCatLoader
 
-# Initialize the loader with the path to TwinCAT files
-loader = TwinCatLoader(search_path="path/to/twincat/files")
+_strategy: BaseStrategy = None
+_collected: dict[str, Objects] = {}
 
-# Load all TwinCAT files
-loader.load()
+# for now only "twincat4024" strategy is allowed
+if config.default_strategy is not None:
+    strategy = get_strategy(config.default_strategy)
+else:
+    strategy = get_default_strategy()
 
-# Get a specific object by name
-pou = loader.getItemByName("FB_Base")
+# set the loader with the right strategy
+_strategy = strategy()
+_loader: Loader = Loader(loader_strategy=_strategy)
 
-# Get a method by name
-method = loader.getItemByName("FB_Base._ConfigureAlarm")
-
-# Get a property by name
-property = loader.getItemByName("FB_Base.DesignationName")
-
-# Get all loaded objects
-all_objects = loader.getAllItems()
+# load every file
+for path in paths:
+    tcobjects = _loader.load_objects(path=path)
+    # for every found object
+    for tcobject in tcobjects:
+        # get identifier (fb_main.Do_This) and check if such a object is not loaded already
+        if not tcobject.get_identifier() in _collected:
+            _collected[tcobject.get_identifier()] = tcobject
 ```
-
-Look in the example folder!
-
-### Generating Documentation
-
-You can generate HTML documentation for your TwinCAT objects using the `generate_docs` module:
-
-```python
-from pytwincatparser.generate_docs import generate_documentation
-
-# Generate documentation
-generate_documentation(
-    search_path="path/to/twincat/files",
-    output_dir="path/to/output/directory",
-    templates_dir="path/to/templates"  # Optional, defaults to 'templates' in the package directory
-)
-```
-
-This will generate HTML documentation for all TwinCAT objects found in the search path. The documentation includes:
-
-- Object details (name, type, etc.)
-- Documentation comments
-- Variable sections
-- Methods and properties
-- Implementation code
-
-See the `examples/generate_documentation.py` script for a complete example.
 
 ## Requirements
 
 - Python 3.11
 - lxml >= 5.3.0
 - xsdata[lxml] >= 24.12
-- jinja2 >= 3.1.6
 
 ## License
 
