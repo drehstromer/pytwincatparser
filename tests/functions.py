@@ -1,5 +1,10 @@
 import re
 
+
+def get_var_keyword(decl):
+    pass
+
+
 def get_var_blocks(decl):
     """
     Extract variable blocks from a declaration string.
@@ -8,38 +13,68 @@ def get_var_blocks(decl):
         decl: The declaration string
         
     Returns:
-        A dictionary with name, keyword, and content for a single block,
-        or a list of such dictionaries for multiple blocks
+        A list of dictionaries, each with 'name' and 'content' keys representing a variable block
     """
+    # First, we need to handle comments to avoid matching VAR blocks inside comments
+    # We'll create a version of the string with comments removed for pattern matching
+    
+    # Create a copy of the original string for processing
+    processed_decl = decl
+    
+    # Remove block comments (* ... *) for pattern matching
+    # But we'll keep track of their positions to preserve them in the content
+    block_comments = []
+    
+    def replace_block_comment(match):
+        block_comments.append((match.start(), match.end(), match.group(0)))
+        return " " * len(match.group(0))  # Replace with spaces to preserve string length
+    
+    processed_decl = re.sub(r'\(\*.*?\*\)', replace_block_comment, processed_decl, flags=re.DOTALL)
+    
+    # Handle line comments
+    # We'll replace lines that start with // with spaces
+    processed_decl = re.sub(r'^\s*//.*$', lambda m: " " * len(m.group(0)), processed_decl, flags=re.MULTILINE)
+    
     # Define the pattern to match variable blocks
     # This pattern captures the variable block type (VAR, VAR_INPUT, etc.),
-    # any keyword (PERSISTENT, CONSTANT), and the content between the block start and end
-    # The pattern now handles indentation and whitespace in the test strings
-    pattern = r'\s*(VAR(?:_[A-Z_]+)?)\s*(\w+)?\s*\n(.*?)\s*END_VAR'
+    # and everything up to END_VAR
+    pattern = r'\s*(VAR(?:_[A-Za-z_]+)?)(.*?)END_VAR'
     
-    # Find all matches in the declaration string
-    matches = list(re.finditer(pattern, decl, re.DOTALL | re.IGNORECASE))
+    # Find all matches in the processed declaration string
+    matches = list(re.finditer(pattern, processed_decl, re.DOTALL))
     
     # Convert matches to a list of dictionaries
     blocks = []
     for match in matches:
-        var_type = match.group(1)  # VAR, VAR_INPUT, etc.
-        keyword = match.group(2) if match.group(2) else ""  # PERSISTENT, CONSTANT, etc.
-        content = match.group(3).rstrip()  # Content between VAR and END_VAR
+        var_type = match.group(1).strip()  # VAR, VAR_INPUT, etc.
+        content = match.group(2)  # Content between VAR and END_VAR
         
-        blocks.append({
+        # Check if this match is inside a block comment
+        is_in_comment = False
+        for start, end, _ in block_comments:
+            if start <= match.start() and match.end() <= end:
+                is_in_comment = True
+                break
+        
+        if is_in_comment:
+            continue  # Skip this match as it's inside a comment
+        
+        # Get the actual content from the original string
+        start_pos = match.start(2)
+        end_pos = match.end(2)
+        original_content = decl[start_pos:end_pos]
+        
+        # Create the block dictionary
+        block = {
             "name": var_type,
-            "keyword": keyword,
-            "content": content
-        })
+            "content": original_content
+        }
+        
+        blocks.append(block)
     
-    # Return a single dictionary if there's only one block, or a list of dictionaries otherwise
-    if len(blocks) == 1:
-        return blocks[0]
-    elif len(blocks) > 1:
-        return blocks
-    else:
-        return {}
+    # Always return a list of dictionaries
+    return blocks
+
 
 def get_extend(decl):
     """
