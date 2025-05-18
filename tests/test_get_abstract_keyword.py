@@ -1,4 +1,4 @@
-from tests.functions import get_abstract_keyword
+from functions import get_abstract_keyword
 
 def test_get_abstract_keyword():
     assert get_abstract_keyword("""FUNCTION_BLOCK FB_Base ABSTRACT Private Extends FB_SubBase, FB_SubSubBase IMPLEMENTS I_Elementinformation, I_TestInterface, I_AnotherTestInterface""") == "ABSTRACT"

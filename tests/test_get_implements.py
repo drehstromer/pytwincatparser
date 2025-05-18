@@ -1,4 +1,4 @@
-from tests.functions import get_implements
+from functions import get_implements
 
 def test_get_implements():
     assert get_implements("""FUNCTION_BLOCK FB_Base ABSTRACT PROTECTED Extends FB_SubBase, FB_SubSubBase IMPLEMENTS I_Elementinformation, I_TestInterface, I_AnotherTestInterface""") == ["I_Elementinformation", "I_TestInterface", "I_AnotherTestInterface"]

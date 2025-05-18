@@ -1,4 +1,4 @@
-from tests.functions import get_extend
+from functions import get_extend
 
 def test_get_extend():
     assert get_extend("""FUNCTION_BLOCK FB_Base ABSTRACT PROTECTED Extends FB_SubBase, FB_SubSubBase IMPLEMENTS I_Elementinformation, I_TestInterface, I_AnotherTestInterface""") == ["FB_SubBase", "FB_SubSubBase"]
