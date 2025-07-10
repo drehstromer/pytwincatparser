@@ -58,3 +58,9 @@ for path in paths:
 ## License
 
 MIT
+
+
+## Todo
+
+- [ ] Add support for return values of methods and functions
+- [ ] Add support for specifier like CONSTANT and PERSISTEN in Variable blocks
