@@ -1,5 +1,81 @@
 import re
 
+def get_comments(decl):
+    """
+    Extract comments from a declaration string.
+    
+    Args:
+        decl: The declaration string
+        
+    Returns:
+        A dictionary with a 'comments' key containing a list of comment strings
+    """
+    comments = []
+    
+    # Find all comments with their positions to maintain order
+    comment_matches = []
+    
+    # Find block comments (* ... *) including multiline and nested comments
+    # We need to handle nested comments properly, so we'll use a custom parser
+    def find_block_comments(text):
+        block_comments = []
+        i = 0
+        while i < len(text):
+            if i < len(text) - 1 and text[i:i+2] == '(*':
+                # Found start of block comment
+                start_pos = i
+                i += 2
+                depth = 1
+                comment_start = start_pos
+                
+                while i < len(text) - 1 and depth > 0:
+                    if text[i:i+2] == '(*':
+                        depth += 1
+                        i += 2
+                    elif text[i:i+2] == '*)':
+                        depth -= 1
+                        i += 2
+                    else:
+                        i += 1
+                
+                if depth == 0:
+                    # Found complete block comment
+                    comment_text = text[comment_start:i]
+                    block_comments.append((comment_start, comment_text))
+                else:
+                    # Unclosed comment, treat as regular text
+                    i = start_pos + 1
+            else:
+                i += 1
+        return block_comments
+    
+    # Find all block comments
+    block_comments = find_block_comments(decl)
+    for pos, comment in block_comments:
+        comment_matches.append((pos, comment))
+    
+    # Find line comments // ... but only those NOT inside block comments
+    # We'll do this by checking each line comment to see if it's inside a block comment
+    line_comment_pattern = r'//.*?(?=\n|$)'
+    for match in re.finditer(line_comment_pattern, decl, re.MULTILINE):
+        # Check if this line comment is inside any block comment
+        inside_block = False
+        for block_pos, block_comment in block_comments:
+            block_end = block_pos + len(block_comment)
+            if block_pos <= match.start() <= block_end:
+                inside_block = True
+                break
+        
+        if not inside_block:
+            comment_matches.append((match.start(), match.group()))
+    
+    # Sort by position to maintain order
+    comment_matches.sort(key=lambda x: x[0])
+    
+    # Extract just the comment text
+    comments = [comment for pos, comment in comment_matches]
+    
+    return {"comments": comments}
 
 def get_var_blocks(decl):
     """
