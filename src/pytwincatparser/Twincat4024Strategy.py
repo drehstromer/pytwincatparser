@@ -19,6 +19,7 @@ from .TwincatObjects.tc_plc_object import (
 )
 from .TwincatObjects.tc_plc_project import Compile, Project, PlaceholderReference
 from . import TwincatDataclasses as tcd
+import parse_declaration as parse_decl
 
 
 from xsdata.formats.dataclass.parsers import XmlParser
@@ -31,74 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
-    """
-    Parse documentation comments from a declaration string.
 
-    Args:
-        declaration: The declaration string containing documentation comments.
-
-    Returns:
-        A TcDocumentation object or None if no documentation is found.
-    """
-    if not declaration:
-        return None
-
-    # Extract only the part before the first variable block
-    var_pattern = re.compile(
-        r"VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|_GLOBAL|[ ]CONSTANT)?", re.DOTALL
-    )
-    struct_pattern = re.compile(r"STRUCT", re.DOTALL)
-
-    # Find the position of the first variable block
-    var_match = var_pattern.search(declaration)
-    struct_match = struct_pattern.search(declaration)
-
-    # Determine the end position of the documentation block
-    end_pos = len(declaration)
-    if var_match:
-        end_pos = min(end_pos, var_match.start())
-    if struct_match:
-        end_pos = min(end_pos, struct_match.start())
-
-    # Extract only the part before the first variable block
-    doc_part = declaration[:end_pos]
-
-    # Define regex patterns for different comment styles
-    # 1. Multi-line comment: (* ... *)
-    # 2. Single-line comment: // ...
-    # 3. Multi-line comment with stars: (*** ... ***)
-    multiline_comment_pattern = re.compile(r"\(\*\s*(.*?)\s*\*\)", re.DOTALL)
-    singleline_comment_pattern = re.compile(r"//\s*(.*?)$", re.MULTILINE)
-
-    # Extract all comments
-    comments = []
-
-    # Check for multi-line comments
-    for match in multiline_comment_pattern.finditer(doc_part):
-        comments.append(match.group(1).strip())
-
-    # Check for single-line comments
-    single_line_comments = []
-    for match in singleline_comment_pattern.finditer(doc_part):
-        single_line_comments.append(match.group(1).strip())
-
-    if single_line_comments:
-        comments.append("\n".join(single_line_comments))
-
-    if not comments:
-        return None
-
-    # Join all comments
-    comment_text = "\n".join(comments)
-
-    # Parse documentation tags
-    doc = tcd.Documentation()
-
-    # Define regex patterns for documentation tags
-    details_pattern = re.compile(r"@details\s*(.*?)(?=@\w+|\Z)", re.DOTALL)
-    usage_pattern = re.compile(r"@usage\s*(.*?)(?=@\w+|\Z)", re.DOTALL)
-    returns_pattern = re.compile(r"@return\s*(.*?)(?=@\w+|\Z)", re.DOTALL)
-    custom_tag_pattern = re.compile(r"@(\w+)\s*(.*?)(?=@\w+|\Z)", re.DOTALL)
 
     # Helper function to clean up tag content
     def clean_tag_content(content):
@@ -115,27 +49,23 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
             content = re.sub(r"\s+", " ", content)
         return content
 
-    # Extract details
-    details_match = details_pattern.search(comment_text)
-    if details_match:
-        doc.details = clean_tag_content(details_match.group(1))
+    # Parse documentation tags
+    doc = tcd.Documentation()
 
-    # Extract usage
-    usage_match = usage_pattern.search(comment_text)
-    if usage_match:
-        doc.usage = clean_tag_content(usage_match.group(1))
+    comments = parse_decl.get_comments(decl=declaration)
+    for comment in comments.get("comments"):
+        temp = parse_decl.get_comment_content(comment)
 
-    # Extract returns
-    returns_match = returns_pattern.search(comment_text)
-    if returns_match:
-        doc.returns = clean_tag_content(returns_match.group(1))
-
-    # Extract custom tags
-    for match in custom_tag_pattern.finditer(comment_text):
-        tag_name = match.group(1)
-        tag_value = clean_tag_content(match.group(2))
-        if tag_name not in ["details", "usage", "return"]:
-            doc.custom_tags[tag_name] = tag_value
+        for tag in temp.get("documentation"):
+            for key, value in tag:
+                if key == "details":
+                    doc.details.append(clean_tag_content(value))
+                elif key == "return":
+                    doc.returns.append(clean_tag_content(value))
+                elif key == "usage":
+                    doc.usage.append(clean_tag_content(value))
+                else:
+                    doc.custom_tags.append({key : clean_tag_content(value)})
 
     return doc
 
@@ -150,206 +80,31 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
     Returns:
         A list of tcd.Variable objects.
     """
-    if not declaration:
-        return []
+    variables =[]
 
-    # Define regex patterns
-    section_pattern = re.compile(
-        r"(VAR(?:_INPUT|_OUTPUT|_IN_OUT|_INST|_STAT|_GLOBAL|[ ]CONSTANT)?)\s*(.*?)END_VAR",
-        re.DOTALL,
-    )
-    struct_pattern = re.compile(r"STRUCT\s*(.*?)END_STRUCT", re.DOTALL)
-    attribute_pattern = re.compile(
-        r"\{attribute\s+\'([^\']+)\'\s*(?:\:=\s*\'([^\']*)\')?\}"
-    )
-    comment_pattern = re.compile(
-        r"(?://(.*)$)|(?:\(\*\s*(.*?)\s*\*\))|(?:\(\*\*\*(.*?)\*\*\*\))",
-        re.MULTILINE | re.DOTALL,
-    )
+    found_var = []
+    found_var_blocks = parse_decl.get_var_blocks(declaration)
+    for var_block in found_var_blocks:
+        for var in parse_decl.get_var_content(var_block["content"]):
+            temp = var
+            temp["var_type"] = var_block["name"]
+            found_var.append(temp)
 
-    # Find all variables
-    variables = []
+    for var in found_var:
+        doc = tcd.Documentation(details=parse_decl.get_comment_content(var["comments"])["standard"])
 
-    # Process VAR sections
-    for section_match in section_pattern.finditer(declaration):
-        section_type = section_match.group(1).strip()
-        section_content = section_match.group(2).strip()
-
-        # Split the section content into lines
-        lines = section_content.split("\n")
-
-
-
-        for line in lines:
-            # Process each line
-            current_var = None
-            current_attributes = {}
-
-            line = line.strip()
-            if not line:
-                continue
-
-            # Check for attribute
-            attr_match = attribute_pattern.search(line)
-            if attr_match:
-                attr_name = attr_match.group(1)
-                attr_value = attr_match.group(2) if attr_match.group(2) else ""
-                current_attributes[attr_name] = attr_value
-                continue
-
-            # Check for variable declaration
-            if ":" in line:
-                # If we have a previous variable, add it to the list
-                # if current_var:
-                #     variables.append(current_var)
-                #     current_var = None
-
-                # Parse the new variable
-                var_parts = line.split(":", 1)
-                var_name = var_parts[0].strip()
-
-                # Extract comment if present
-                var_comment = None
-                comment_match = comment_pattern.search(line)
-                if comment_match:
-                    # Get the first non-None group
-                    for group in comment_match.groups():
-                        if group:
-                            var_comment = group.strip()
-                            break
-
-                # Remove comment from line for further processing
-                if comment_match:
-                    line = line[: comment_match.start()].strip()
-
-                # Parse type and initial value
-                type_value_parts = var_parts[1].strip()
-                if ";" in type_value_parts:
-                    type_value_parts = type_value_parts.rstrip(";")
-
-                var_type = type_value_parts
-                var_initial_value = None
-
-                # Check for initial value
-                if ":=" in type_value_parts:
-                    type_init_parts = type_value_parts.split(":=", 1)
-                    var_type = type_init_parts[0].strip()
-                    var_initial_value = type_init_parts[1].strip()
-
-                var_type = var_type.split(";")[0]
-
-                doc = tcd.Documentation(details=var_comment)
-
-                # Create the variable
-                current_var = tcd.Variable(
-                    name=var_name,
-                    type=var_type,
-                    initial_value=var_initial_value,
-                    comment=var_comment,
-                    attributes=current_attributes if current_attributes else None,
-                    section_type=section_type.lower(),
-                    documentation=doc,
-                )
-
-                current_var.labels.append(var_type)
-                variables.append(current_var)
-
-
-            #         # Reset attributes for the next variable
-            #         current_attributes = {}
-
-            # # Add the last variable if there is one
-            # if current_var:
-            #     variables.append(current_var)
-
-    # Process STRUCT sections for DUTs
-    for struct_match in struct_pattern.finditer(declaration):
-        struct_content = struct_match.group(1).strip()
-
-        # Split the struct content into lines
-        lines = struct_content.split("\n")
-
-
-
-        for line in lines:
-
-            # Process each line
-            current_var = None
-            current_attributes = {}
-
-            line = line.strip()
-            if not line:
-                continue
-
-            # Check for attribute
-            attr_match = attribute_pattern.search(line)
-            if attr_match:
-                attr_name = attr_match.group(1)
-                attr_value = attr_match.group(2) if attr_match.group(2) else ""
-                current_attributes[attr_name] = attr_value
-                continue
-
-            # Check for variable declaration
-            if ":" in line:
-                # If we have a previous variable, add it to the list
-                # if current_var:
-                #     variables.append(current_var)
-                #     current_var = None
-
-                # Parse the new variable
-                var_parts = line.split(":", 1)
-                var_name = var_parts[0].strip()
-
-                # Extract comment if present
-                var_comment = None
-                comment_match = comment_pattern.search(line)
-                if comment_match:
-                    # Get the first non-None group
-                    for group in comment_match.groups():
-                        if group:
-                            var_comment = group.strip()
-                            break
-
-                # Remove comment from line for further processing
-                if comment_match:
-                    line = line[: comment_match.start()].strip()
-
-                # Parse type and initial value
-                type_value_parts = var_parts[1].strip()
-                if ";" in type_value_parts:
-                    type_value_parts = type_value_parts.rstrip(";")
-
-                var_type = type_value_parts
-                var_initial_value = None
-
-                # Check for initial value
-                if ":=" in type_value_parts:
-                    type_init_parts = type_value_parts.split(":=", 1)
-                    var_type = type_init_parts[0].strip()
-                    var_initial_value = type_init_parts[1].strip()
-
-                var_type = var_type.split(";")[0]
-
-                doc = tcd.Documentation(details=var_comment)
-
-                # Create the variable
-                current_var = tcd.Variable(
-                    name=var_name,
-                    type=var_type,
-                    initial_value=var_initial_value,
-                    comment=var_comment,
-                    attributes=current_attributes if current_attributes else None,
-                    section_type="STRUCT".lower(),
-                    documentation=doc,
-                )
-                current_var.labels.append(var_type)
-                variables.append(current_var)
-        #         # Reset attributes for the next variable
-        #         current_attributes = {}
-
-        # # Add the last variable if there is one
-        # if current_var:
-        #     variables.append(current_var)
+        # Create the variable
+        current_var = tcd.Variable(
+            name=var["name"],
+            type=var["type"],
+            initial_value=var["init"],
+            comment=var["comments"],
+            attributes=var["attributes"],
+            section_type=var["var_type"].lower(),
+            documentation=doc,
+        )
+        current_var.labels.append(var["var_type"])
+        variables.append(current_var)
 
     return variables
 
@@ -384,18 +139,7 @@ def load_method(method: Method):
                         return_part = return_part[:-1].strip()
                     returnType = return_part
 
-                # Check for access modifier
-                parts = first_line.split(" ")
-                if len(parts) >= 3:
-                    # Check if the second part is an access modifier
-                    possible_modifier = parts[1].upper()
-                    if possible_modifier in [
-                        "PROTECTED",
-                        "PRIVATE",
-                        "INTERNAL",
-                        "PUBLIC",
-                    ]:
-                        accessModifier = possible_modifier
+        accessModifier = parse_decl.get_access_modifier(method.declaration)
 
         # Parse variable sections
         variables = parse_variables(method.declaration)
@@ -658,32 +402,15 @@ class TcPouHandler(FileHandler):
             meth.parent = _pou.name
 
         # Parse extends and implements from declaration
-        extends = None
-        implements = None
+        extends = []
+        implements = []
         variables = []
+        access_specifier = ""
 
         if _pou.declaration:
-            declaration_lines = _pou.declaration.strip().split("\n")
-            if declaration_lines:
-                first_line = declaration_lines[0].strip()
-
-                # Check for EXTENDS
-                if " EXTENDS " in first_line:
-                    # Extract the part after EXTENDS
-                    extends_part = first_line.split(" EXTENDS ")[1]
-                    # If there's an IMPLEMENTS part, remove it
-                    if " IMPLEMENTS " in extends_part:
-                        extends_part = extends_part.split(" IMPLEMENTS ")[0]
-                    extends = extends_part.strip()
-
-                # Check for IMPLEMENTS
-                if " IMPLEMENTS " in first_line:
-                    # Extract the part after IMPLEMENTS
-                    implements_part = first_line.split(" IMPLEMENTS ")[1]
-                    # Split by comma to get multiple interfaces
-                    implements = [
-                        interface.strip() for interface in implements_part.split(",")
-                    ]
+            extends = parse_decl.get_extend(_pou.declaration)
+            implements = parse_decl.get_implements(_pou.declaration)
+            access_specifier = parse_decl.get_abstract_keyword(_pou.declaration)
 
             # Parse variable sections
             variables = parse_variables(_pou.declaration)
@@ -701,6 +428,7 @@ class TcPouHandler(FileHandler):
             extends=extends,
             implements=implements,
             documentation=documentation,
+            access_specifier=access_specifier,
         )
 
 
@@ -727,7 +455,7 @@ class TcPouHandler(FileHandler):
         tcPou.methods = methods   
 
         if extends is not None:
-            tcPou.labels.append("Ext: "+ extends)
+            tcPou.labels.append("Ext: " + ", ".join([ext for ext in extends]))
         if implements is not None:
             tcPou.labels.append("Impl: " + ", ".join([impl for impl in implements]))
 
@@ -758,22 +486,7 @@ class TcItfHandler(FileHandler):
         extends = None
 
         if _itf.declaration:
-            declaration_lines = _itf.declaration.strip().split("\n")
-            if declaration_lines:
-                first_line = declaration_lines[0].strip()
-
-                # Check for EXTENDS
-                if " Extends " in first_line or " EXTENDS " in first_line:
-                    # Extract the part after EXTENDS (case insensitive)
-                    if " Extends " in first_line:
-                        extends_part = first_line.split(" Extends ")[1]
-                    else:
-                        extends_part = first_line.split(" EXTENDS ")[1]
-
-                    # Split by comma to get multiple interfaces
-                    extends = [
-                        interface.strip() for interface in extends_part.split(",")
-                    ]
+            extends = parse_decl.get_extend(_itf.declaration)
 
         tcitf = tcd.Itf(
             name=_itf.name,

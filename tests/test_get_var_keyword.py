@@ -1,4 +1,4 @@
-from functions import get_var_keyword
+from pytwincatparser.parse_declaration import get_var_keyword
 
 def test_get_var_keyword():
     # Test case 1

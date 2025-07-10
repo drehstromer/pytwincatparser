@@ -137,9 +137,10 @@ class Property(Base):
 @dataclass
 class Pou(Base):
     implements: Optional[list[str]] = None
-    extends: Optional[str] = None
+    extends: Optional[list[str]] = None
     declaration: str = ""
     implementation: str = ""
+    access_specifier: str = ""
 
     methods: Optional[list[Method]] = None
     properties: Optional[list[Property]] = None

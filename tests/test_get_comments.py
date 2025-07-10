@@ -1,6 +1,6 @@
-from functions import get_comments
+from pytwincatparser.parse_declaration import get_comments
 
-def test_get_var_blocks():
+def test_get_comments():
     # Test case 1
     test_str1 = r"""FUNCTION_BLOCK FB_Base ABSTRACT PROTECTED Extends FB_SubBase, FB_SubSubBase IMPLEMENTS I_Elementinformation, I_TestInterface, I_AnotherTestInterface
                 (*details This is a detail*)

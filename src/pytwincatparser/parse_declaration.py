@@ -107,10 +107,10 @@ def get_var_blocks(decl):
     # We'll replace lines that start with // with spaces
     processed_decl = re.sub(r'^\s*//.*$', lambda m: " " * len(m.group(0)), processed_decl, flags=re.MULTILINE)
     
-    # Define the pattern to match variable blocks
-    # This pattern captures the variable block type (VAR, VAR_INPUT, etc.),
-    # and everything up to END_VAR
-    pattern = r'\s*(VAR(?:_[A-Za-z_]+)?)(.*?)END_VAR'
+    # Define the pattern to match variable blocks and struct blocks
+    # This pattern captures the block type (VAR, VAR_INPUT, STRUCT, etc.),
+    # and everything up to the corresponding END block
+    pattern = r'\s*((?:VAR(?:_[A-Za-z_]+)?|STRUCT))(.*?)END_(?:VAR|STRUCT)'
     
     # Find all matches in the processed declaration string
     matches = list(re.finditer(pattern, processed_decl, re.DOTALL))

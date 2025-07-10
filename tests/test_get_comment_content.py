@@ -1,4 +1,4 @@
-from functions import get_comment_content
+from pytwincatparser.parse_declaration import get_comment_content
 
 def test_get_comment_content():
     # Test case 1

@@ -1,4 +1,4 @@
-from functions import get_var_blocks
+from pytwincatparser.parse_declaration import get_var_blocks
 
 def test_get_var_blocks():
     # Test case 1
@@ -266,3 +266,18 @@ def test_get_var_blocks():
     """}]
     result16 = get_var_blocks(test_str16)
     assert result16 == expected16, f"Test case 16 failed. Expected: {expected16}, Got: {result16}"
+
+    # Test case 17
+    test_str17 = r"""
+    STRUCT      
+        // persistent
+	    {attribute 'hide'}
+	    _bLicenseOk 							: BOOL := TRUE; // static class variable, access to all fb
+    END_STRUCT"""
+    expected17 = [{"name":"STRUCT",  "content":r"""      
+        // persistent
+	    {attribute 'hide'}
+	    _bLicenseOk 							: BOOL := TRUE; // static class variable, access to all fb
+    """}]
+    result17 = get_var_blocks(test_str17)
+    assert result17 == expected17, f"Test case 17 failed. Expected: {expected17}, Got: {result17}"
