@@ -1,5 +1,36 @@
 import re
 
+def get_var_specifier(decl):
+    """
+    Extract variable specifiers from a declaration string.
+    
+    Args:
+        decl: The declaration string
+        
+    Returns:
+        A list of variable specifiers (CONSTANT, PERSISTENT, RETAIN, etc.) found at the beginning of the string
+    """
+    # First, remove comments to avoid false matches
+    # Remove block comments (* ... *)
+    decl_no_comments = re.sub(r'\(\*.*?\*\)', '', decl, flags=re.DOTALL)
+    
+    # Remove line comments // ...
+    decl_no_comments = re.sub(r'//.*?$', '', decl_no_comments, flags=re.MULTILINE)
+    
+    # Define the pattern to match variable specifiers at the beginning of the string
+    # This pattern looks for common variable specifiers like CONSTANT, PERSISTENT, RETAIN, etc.
+    # It ensures these are standalone words by checking for word boundaries
+    pattern = r'^\s*(CONSTANT|PERSISTENT|RETAIN)\b'
+    
+    # Search for the pattern in the declaration string (case-insensitive)
+    match = re.search(pattern, decl_no_comments, re.IGNORECASE)
+    
+    if match:
+        # Return the matched specifier with its original case in a list
+        return [match.group(1)]
+    
+    # Return empty list if no specifier is found
+    return []
 
 def get_comments(decl):
     """

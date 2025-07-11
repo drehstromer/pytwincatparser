@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path, PurePath, PureWindowsPath
 from typing import List, Optional
 
-import parse_declaration as parse_decl
+from . import parse_declaration as parse_decl
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 
