@@ -1,5 +1,42 @@
 import re
 
+
+def get_return(decl):
+    """
+    Extract return type from METHOD, FUNCTION, or PROPERTY declarations.
+    
+    Args:
+        decl: The declaration string
+        
+    Returns:
+        The return type as a string, or an empty string if no return type is found
+    """
+    # First, remove line comments to avoid false matches
+    decl_no_line_comments = re.sub(r'//.*?$', '', decl, flags=re.MULTILINE)
+    
+    # Define the pattern to match METHOD, FUNCTION, or PROPERTY declarations with return types
+    # This pattern looks for these keywords followed by a name and then a colon and return type
+    pattern = r'^\s*(?:METHOD|FUNCTION|PROPERTY)\s+\w+\s*:\s*(.+?)(?:\n|$)'
+    
+    # Search for the pattern in the declaration string (case-insensitive)
+    match = re.search(pattern, decl_no_line_comments, re.IGNORECASE | re.MULTILINE)
+    
+    if match:
+        # Extract the return type
+        return_type = match.group(1).strip()
+        
+        # Remove comments in parentheses like ("some comment")
+        return_type = re.sub(r'\s*\([^)]*\)\s*', ' ', return_type)
+        
+        # Clean up extra whitespace
+        return_type = re.sub(r'\s+', ' ', return_type).strip()
+        
+        return return_type
+    
+    # Return empty string if no return type is found
+    return ""
+
+
 def get_var_specifier(decl):
     """
     Extract variable specifiers from a declaration string.
