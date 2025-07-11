@@ -82,12 +82,14 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
         for var in parse_decl.get_var_content(var_block["content"]):
             temp = var
             temp["var_type"] = var_block["name"]
+            temp["access_modifier"] = parse_decl.get_var_keyword(var_block["content"])
             found_var.append(temp)
 
     for var in found_var:
         doc = tcd.Documentation(
             details=parse_decl.get_comment_content(var["comments"])["standard"]
         )
+
 
         # Create the variable
         current_var = tcd.Variable(
@@ -98,8 +100,11 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
             attributes=var["attributes"],
             section_type=var["var_type"].lower(),
             documentation=doc,
+            section_modifier=var["access_modifier"],
+
         )
         current_var.labels.append(var["var_type"])
+        current_var.labels.append(var["access_modifier"])
         variables.append(current_var)
 
     return variables
@@ -121,26 +126,9 @@ def load_method(method: Method):
     documentation = None
 
     if method.declaration:
-        declaration_lines = method.declaration.strip().split("\n")
-        if declaration_lines:
-            first_line = declaration_lines[0].strip()
-            # Look for METHOD [MODIFIER] name : return_type;
-            if first_line.startswith("METHOD "):
-                # Check for return type after colon
-                if ":" in first_line:
-                    # Split by colon and get the part after it
-                    return_part = first_line.split(":", 1)[1].strip()
-                    # Remove trailing semicolon if present
-                    if return_part.endswith(";"):
-                        return_part = return_part[:-1].strip()
-                    returnType = return_part
-
+        returnType = parse_decl.get_return(method.declaration)
         accessModifier = parse_decl.get_access_modifier(method.declaration)
-
-        # Parse variable sections
         variables = parse_variables(method.declaration)
-
-        # Parse documentation
         documentation = parse_documentation(method.declaration)
 
     tcMeth = tcd.Method(
@@ -172,16 +160,7 @@ def load_property(property: Property):
     # Parse return type from declaration
     returnType = None
     if property.declaration:
-        declaration_lines = property.declaration.strip().split("\n")
-        if declaration_lines:
-            first_line = declaration_lines[0].strip()
-            # Look for PROPERTY name : return_type
-            if first_line.startswith("PROPERTY "):
-                # Check for return type after colon
-                if ":" in first_line:
-                    # Split by colon and get the part after it
-                    return_part = first_line.split(":", 1)[1].strip()
-                    returnType = return_part
+        returnType = parse_decl.get_return(property.declaration)
         # Parse documentation
         documentation = parse_documentation(property.declaration)
 
