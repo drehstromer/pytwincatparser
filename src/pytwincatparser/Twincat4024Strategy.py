@@ -38,28 +38,25 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
             # Remove leading asterisks and whitespace from each line
             content = re.sub(r"^\s*\*+\s*", "", content, flags=re.MULTILINE)
             # Remove leading and trailing whitespace
-            content = content.strip()
+            #content = content.strip()
             # Replace multiple whitespace with a single space
-            content = re.sub(r"\s+", " ", content)
+            #content = re.sub(r"\s+", " ", content)
         return content
 
     # Parse documentation tags
     doc = tcd.Documentation()
-
     comments = parse_decl.get_comments(decl=declaration)
     for comment in comments.get("comments"):
         temp = parse_decl.get_comment_content(comment)
-
-        for tag in temp.get("documentation"):
-            for key, value in tag:
-                if key == "details":
-                    doc.details.append(clean_tag_content(value))
-                elif key == "return":
-                    doc.returns.append(clean_tag_content(value))
-                elif key == "usage":
-                    doc.usage.append(clean_tag_content(value))
-                else:
-                    doc.custom_tags.append({key: clean_tag_content(value)})
+        for key, value in temp.get("documentation").items():
+            if key == "details":
+                doc.details = clean_tag_content(value)
+            elif key == "return":
+                doc.returns = (clean_tag_content(value))
+            elif key == "usage":
+                doc.usage = (clean_tag_content(value))
+            else:
+                doc.custom_tags.append({key: clean_tag_content(value)})
 
     return doc
 
@@ -79,18 +76,22 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
     found_var = []
     found_var_blocks = parse_decl.get_var_blocks(declaration)
     for var_block in found_var_blocks:
-        for var in parse_decl.get_var_content(var_block["content"]):
-            temp = var
-            temp["var_type"] = var_block["name"]
-            temp["access_modifier"] = parse_decl.get_var_keyword(var_block["content"])
-            found_var.append(temp)
+        temp_variables = parse_decl.get_var(var_block["content"])
+        keyword = parse_decl.get_var_keyword(var_block["content"])
+        for var in temp_variables:
+            temp = parse_decl.get_var_content(var)
+            for temp_var in temp:
+                temp_var["var_type"] = var_block["name"]
+                temp_var["access_modifier"] = keyword
+                found_var.append(temp_var)
 
     for var in found_var:
+        comments = parse_decl.get_comment_content(var["comments"])
         doc = tcd.Documentation(
-            details=parse_decl.get_comment_content(var["comments"])["standard"]
+            details=comments["standard"][0] if len(comments["standard"]) > 0 else None
         )
 
-
+        
         # Create the variable
         current_var = tcd.Variable(
             name=var["name"],
@@ -103,8 +104,7 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
             section_modifier=var["access_modifier"],
 
         )
-        current_var.labels.append(var["var_type"])
-        current_var.labels.append(var["access_modifier"])
+        current_var.labels.append(var["type"])
         variables.append(current_var)
 
     return variables
@@ -442,9 +442,9 @@ class TcPouHandler(FileHandler):
         tcPou.methods = methods
 
         if extends is not None:
-            tcPou.labels.append("Ext: " + ", ".join([ext for ext in extends]))
+            tcPou.labels.append("Extends: " + ", ".join([ext for ext in extends]))
         if implements is not None:
-            tcPou.labels.append("Impl: " + ", ".join([impl for impl in implements]))
+            tcPou.labels.append("Implements: " + ", ".join([impl for impl in implements]))
 
         obj_store.append(tcPou)
         obj_store.extend(methods)

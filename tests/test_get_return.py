@@ -80,3 +80,13 @@ def test_get_return():
     expected8 = "REFERENCE TO ST_Sample"
     result8 = get_return(test_str8)
     assert result8 == expected8, f"Test case 8 failed. Expected: {expected8}, Got: {result8}"
+
+        # Test case 9
+    test_str9 = r"""METHOD Method1 : BOOL;
+
+	    _bLicenseOk1 							: BOOL;
+	    _bLicenseOk2 							: BOOL;
+    """
+    expected9 = "BOOL"
+    result9 = get_return(test_str9)
+    assert result9 == expected9, f"Test case 9 failed. Expected: {expected9}, Got: {result9}"

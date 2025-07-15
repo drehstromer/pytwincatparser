@@ -6,7 +6,7 @@ def test_get_var_keyword():
 	    {attribute 'hide'}
 	    _bLicenseOk 							: BOOL := TRUE; // static class variable, access to all fb
     """
-    expected1 = [""]
+    expected1 = None
     result1 = get_var_keyword(test_str1)
     assert result1 == expected1, f"Test case 1 failed. Expected: {expected1}, Got: {result1}"
 
@@ -51,7 +51,7 @@ def test_get_var_keyword():
 	    {attribute 'hide'}
 	    _bLicenseOk 							: BOOL := TRUE; // static class variable, access to all fb
     """
-    expected6 = [""]
+    expected6 = None
     result6 = get_var_keyword(test_str6)
     assert result6 == expected6, f"Test case 6 failed. Expected: {expected6}, Got: {result6}"
 
@@ -61,6 +61,6 @@ def test_get_var_keyword():
 	    {attribute 'hide'}
 	    _bLicenseOk 							: BOOL := TRUE; // static class variable, access to all fb
     """
-    expected7 = [""]
+    expected7 = None
     result7 = get_var_keyword(test_str7)
     assert result7 == expected7, f"Test case 7 failed. Expected: {expected7}, Got: {result7}"

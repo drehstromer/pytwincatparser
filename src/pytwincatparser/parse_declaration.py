@@ -16,7 +16,8 @@ def get_return(decl):
     
     # Define the pattern to match METHOD, FUNCTION, or PROPERTY declarations with return types
     # This pattern looks for these keywords followed by a name and then a colon and return type
-    pattern = r'^\s*(?:METHOD|FUNCTION|PROPERTY)\s+\w+\s*:\s*(.+?)(?:\n|$)'
+    # It stops at semicolon, newline, or end of string
+    pattern = r'^\s*(?:METHOD|FUNCTION|PROPERTY)\s+\w+\s*:\s*(.+?)(?:;|\n|$)'
     
     # Search for the pattern in the declaration string (case-insensitive)
     match = re.search(pattern, decl_no_line_comments, re.IGNORECASE | re.MULTILINE)
@@ -34,7 +35,7 @@ def get_return(decl):
         return return_type
     
     # Return empty string if no return type is found
-    return ""
+    return None
 
 
 def get_var_specifier(decl):
@@ -259,7 +260,7 @@ def get_extend(decl):
         return extends_list
 
     # Return empty list if no "Extends" found
-    return []
+    return None
 
 
 def get_implements(decl):
@@ -299,7 +300,7 @@ def get_implements(decl):
         return implements_list
 
     # Return empty list if no "Implements" found
-    return []
+    return None
 
 
 def get_access_modifier(decl):
@@ -332,7 +333,7 @@ def get_access_modifier(decl):
         return match.group(1)
 
     # Return empty string if no access modifier is found
-    return ""
+    return None
 
 
 def get_abstract_keyword(decl):
@@ -396,7 +397,7 @@ def get_var_keyword(content):
         return [match.group(1)]
 
     # Return a list with an empty string if no keyword is found
-    return [""]
+    return None
 
 
 def get_var(content):
@@ -662,7 +663,9 @@ def get_comment_content(decl):
         - "documentation": A list of dictionaries, each containing a documentation keyword and its content
     """
     # Initialize the result dictionary
-    result = {"standard": [], "documentation": []}
+    result = {"standard": [], "documentation": {}}
+    documentation = {}
+    standard = []
 
     # Extract line comments first
     # We'll look for // followed by text until the end of the line or until a block comment starts
@@ -671,7 +674,8 @@ def get_comment_content(decl):
 
     for match in line_comment_matches:
         # Add the comment content (without the // marker) to the standard comments list
-        result["standard"].append(match.group(1).strip())
+        # result["standard"].append(match.group(1).strip())
+        standard.append(match.group(1).strip())
 
     # Now extract and process block comments
     block_comment_pattern = r"\(\*(.*?)\*\)"
@@ -684,7 +688,8 @@ def get_comment_content(decl):
         # Check if there's a whitespace after (*
         if full_comment.startswith("(* "):
             # This is a standard comment
-            result["standard"].append(comment_content.strip())
+            #result["standard"].append(comment_content.strip())
+            standard.append(comment_content.strip())
         else:
             # This is a documentation comment
             # Extract the keyword and content
@@ -698,9 +703,13 @@ def get_comment_content(decl):
                 content = doc_match.group(2)
 
                 # Add the documentation comment to the documentation list
-                result["documentation"].append({keyword: content})
+                #result["documentation"].update({keyword: content})
+                documentation.update({keyword: content})
             else:
                 # If we can't extract a keyword, treat it as a standard comment
-                result["standard"].append(comment_content.strip())
+                #result["standard"].append(comment_content.strip())
+                standard.append(comment_content.strip())
 
+    result["documentation"] = documentation
+    result["standard"] = standard
     return result
