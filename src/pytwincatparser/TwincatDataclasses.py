@@ -51,6 +51,7 @@ class Variable(Base):
     attributes: Optional[Dict[str, str]] = None
     documentation: Optional[Documentation] = None
     section_type: str = None
+    section_modifier: Optional[str] = None
 
     def __post_init__(self):
         if self.attributes is None:
@@ -137,9 +138,10 @@ class Property(Base):
 @dataclass
 class Pou(Base):
     implements: Optional[list[str]] = None
-    extends: Optional[str] = None
+    extends: Optional[list[str]] = None
     declaration: str = ""
     implementation: str = ""
+    access_specifier: str = ""
 
     methods: Optional[list[Method]] = None
     properties: Optional[list[Property]] = None
