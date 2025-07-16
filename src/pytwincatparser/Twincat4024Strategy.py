@@ -56,7 +56,7 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
             elif key == "usage":
                 doc.usage = (clean_tag_content(value))
             else:
-                doc.custom_tags.append({key: clean_tag_content(value)})
+                doc.custom_tags.update({key: clean_tag_content(value)})
 
     return doc
 
