@@ -15,3 +15,9 @@ def test_get_extend():
     assert get_extend("""INTERFACE I_Data Extends __System.IQueryInterface""") == ["__System.IQueryInterface"]
     assert get_extend("""FUNCTION_BLOCK FB_UtilitiesModuleControl EXTENDS FB_Base
 (*details Controls and checks all supplies, e.g. Power and Pneumatic *)""") == ["FB_Base"]
+    assert get_extend("""FUNCTION_BLOCK FB_ProvidePmlCommand EXTENDS FB_Provide
+(*details Functionblock to provide PmlCommands. The counterpart of this FB is the [FB_PullPmlCommand][LCA_NGP_Core.FB_PullPmlCommand].*)
+
+VAR
+	_stPmlCommand : ST_PmlCommand;
+END_VAR""") == ["FB_Provide"]

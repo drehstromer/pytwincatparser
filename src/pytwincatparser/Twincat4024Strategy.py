@@ -456,9 +456,9 @@ class TcPouHandler(FileHandler):
         tcPou.methods = methods
 
         if extends is not None:
-            tcPou.labels.append("Extends: " + ", ".join([ext for ext in extends]))
+            tcPou.labels.append("Ext: " + ", ".join([ext for ext in extends]))
         if implements is not None:
-            tcPou.labels.append("Implements: " + ", ".join([impl for impl in implements]))
+            tcPou.labels.append("Impl: " + ", ".join([impl for impl in implements]))
 
         obj_store.append(tcPou)
         obj_store.extend(methods)

@@ -244,8 +244,9 @@ def get_extend(decl):
 
     # Define the pattern to match "Extends" followed by class names
     # This pattern looks for "Extends" followed by one or more class names separated by commas
-    # It stops at "IMPLEMENTS" keyword or end of string
-    pattern = r"EXTENDS\s+([\w,\s]+?)(?:\s+IMPLEMENTS\s+|$)"
+    # It stops at "IMPLEMENTS" keyword, newline, or end of string
+    # Updated to include dots in class names (e.g., __System.IQueryInterface)
+    pattern = r"EXTENDS\s+([\w.,]+(?:\s*,\s*[\w.,]+)*)(?:\s+IMPLEMENTS\s+|\s*\n|$)"
 
     # Search for the pattern in the declaration string (case-insensitive)
     match = re.search(pattern, decl_no_comments, re.IGNORECASE)
@@ -282,8 +283,9 @@ def get_implements(decl):
 
     # Define the pattern to match "Implements" followed by interface names
     # This pattern looks for "Implements" followed by one or more interface names separated by commas
-    # It stops at "EXTENDS" keyword or end of string
-    pattern = r"IMPLEMENTS\s+([\w,\s]+?)(?:\s+EXTENDS\s+|$)"
+    # It stops at "EXTENDS" keyword, newline, or end of string
+    # Updated to include dots in interface names (e.g., __System.IQueryInterface)
+    pattern = r"IMPLEMENTS\s+([\w.,]+(?:\s*,\s*[\w.,]+)*)(?:\s+EXTENDS\s+|\s*\n|$)"
 
     # Search for the pattern in the declaration string (case-insensitive)
     match = re.search(pattern, decl_no_comments, re.IGNORECASE)
