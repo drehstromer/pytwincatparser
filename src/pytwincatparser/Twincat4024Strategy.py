@@ -486,14 +486,17 @@ class TcItfHandler(FileHandler):
 
         # Parse extends from declaration
         extends = None
+        documentation = None
 
         if _itf.declaration:
             extends = parse_decl.get_extend(_itf.declaration)
+            documentation = parse_documentation(_itf.declaration)
 
         tcitf = tcd.Itf(
             name=_itf.name,
             path=path.resolve(),
             extends=extends,
+            documentation=documentation,
         )
 
         for prop in properties:

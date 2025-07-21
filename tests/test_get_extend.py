@@ -12,3 +12,6 @@ def test_get_extend():
     assert get_extend("""FUNCTION_BLOCK FB_Base ABSTRACT PROTECTED EXTENDS FB_SubBase""") == ["FB_SubBase"]
     assert get_extend("""FUNCTION_BLOCK FB_Base ABSTRACT PROTECTED IMPLEMENTS I_Elementinformation, I_TestInterface EXTENDS FB_SubBase""") == ["FB_SubBase"]
     assert get_extend("""FUNCTION_BLOCK FB_Base PROTECTED EXTENDS FB_SubBase implements I_AnotherTestInterface""") == ["FB_SubBase"]
+    assert get_extend("""INTERFACE I_Data Extends __System.IQueryInterface""") == ["__System.IQueryInterface"]
+    assert get_extend("""FUNCTION_BLOCK FB_UtilitiesModuleControl EXTENDS FB_Base
+(*details Controls and checks all supplies, e.g. Power and Pneumatic *)""") == ["FB_Base"]
