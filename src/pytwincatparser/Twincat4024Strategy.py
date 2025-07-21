@@ -45,7 +45,13 @@ def parse_documentation(declaration: str) -> Optional[tcd.Documentation]:
 
     # Parse documentation tags
     doc = tcd.Documentation()
-    comments = parse_decl.get_comments(decl=declaration)
+
+    # remove the var blocks to only parse the documentation of fbs or methods or the like
+    decl_without_varblocks = declaration
+    for var_block in parse_decl.get_var_blocks(declaration):
+        decl_without_varblocks = decl_without_varblocks.replace(var_block.get("content"),"")
+
+    comments = parse_decl.get_comments(decl=decl_without_varblocks)
     for comment in comments.get("comments"):
         temp = parse_decl.get_comment_content(comment)
         for key, value in temp.get("documentation").items():
@@ -87,8 +93,16 @@ def parse_variables(declaration: str) -> List[tcd.Variable]:
 
     for var in found_var:
         comments = parse_decl.get_comment_content(var["comments"])
+
+        if comments["documentation"].get("details") is not None:
+            details = comments["documentation"].get("details")
+        elif len(comments["standard"]) > 0:
+            details = comments["standard"][0]
+        else:
+            details = None
+        
         doc = tcd.Documentation(
-            details=comments["standard"][0] if len(comments["standard"]) > 0 else None
+            details=details
         )
 
         
